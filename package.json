@@ -5,7 +5,9 @@
   "license": "MIT",
   "esy": {
     "build": [
-        ["make", "clean"]
+        ["bash", "-c", "#{os == 'windows' ? 'CC=x86_64-w64-mingw32-gcc WINDRES=x86_64-w64-mingw32-windres ./configure --prefix=$cur__install' : './configure --prefix=$cur__install'}"],
+        ["make"],
+        ["make", "install"]
     ],
     "buildsInSource":"_build",
     "exportedEnv": {
