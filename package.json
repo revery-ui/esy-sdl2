@@ -5,7 +5,6 @@
   "license": "MIT",
   "esy": {
     "build": [
-        ["./build-scripts/config.sub"],
         ["bash", "-c", "#{os == 'windows' ? 'SHELL=bash CC=x86_64-w64-mingw32-gcc WINDRES=x86_64-w64-mingw32-windres ./configure --prefix=$cur__install' : './configure --prefix=$cur__install'}"],
         ["make"],
         ["make", "install"]
