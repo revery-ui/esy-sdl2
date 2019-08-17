@@ -5,4 +5,5 @@
 # gets choked up on the extra `\r` character.
 *.sh text eol=lf
 configure eol=lf
+build-scripts/* eol=lf
 Makefile* eol=lf
