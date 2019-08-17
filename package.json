@@ -1,7 +1,7 @@
 {
   "name": "esy-sdl2",
-  "version": "2.0.10.",
-  "description": "Esy-enabled SDL 2 buidl",
+  "version": "2.0.10001",
+  "description": "Esy-enabled SDL 2 build",
   "license": "MIT",
   "esy": {
     "build": [
