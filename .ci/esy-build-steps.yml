@@ -11,4 +11,6 @@ steps:
   - script: esy install
     displayName: 'esy install'
   - script: esy build
-    displayName: 'esy build'
+    displayName: 'esy build --verbosity=debug'
+    env:
+      ESY__LOG: 'debug'
