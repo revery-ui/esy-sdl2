@@ -232,10 +232,11 @@ void
 WIN_UpdateTextInputRect(SDL_VideoData *videodata)
 {
     HIMC himc = ImmGetContext(videodata->ime_hwnd_current);
+    CANDIDATEFORM cf;
+
     if (!himc)
         return;
 
-    CANDIDATEFORM cf;
     cf.dwIndex = 0;
     cf.dwStyle = CFS_EXCLUDE;
     cf.ptCurrentPos.x = videodata->ime_rect.x;
@@ -252,12 +253,14 @@ WIN_UpdateTextInputRect(SDL_VideoData *videodata)
 void
 WIN_SetTextInputRect(_THIS, SDL_Rect *rect)
 {
+    SDL_VideoData *videodata;
+    
     if (!rect) {
         SDL_InvalidParamError("rect");
         return;
     }
 
-    SDL_VideoData *videodata = (SDL_VideoData *)_this->driverdata;
+    videodata = (SDL_VideoData *)_this->driverdata;
     videodata->ime_rect = *rect;
     WIN_UpdateTextInputRect(videodata);
 }
@@ -340,7 +343,7 @@ static DWORD IME_GetId(SDL_VideoData *videodata, UINT uIndex);
 static void IME_SendEditingEvent(SDL_VideoData *videodata);
 static void IME_DestroyTextures(SDL_VideoData *videodata);
 
-static SDL_bool UILess_SetupSinks(SDL_VideoData *videodata);
+//static SDL_bool UILess_SetupSinks(SDL_VideoData *videodata);
 static void UILess_ReleaseSinks(SDL_VideoData *videodata);
 static void UILess_EnableUIUpdates(SDL_VideoData *videodata);
 static void UILess_DisableUIUpdates(SDL_VideoData *videodata);
@@ -1231,7 +1234,7 @@ UILess_DisableUIUpdates(SDL_VideoData *videodata)
     }
 }
 
-static SDL_bool
+/*static SDL_bool
 UILess_SetupSinks(SDL_VideoData *videodata)
 {
     TfClientId clientid = 0;
@@ -1263,7 +1266,7 @@ UILess_SetupSinks(SDL_VideoData *videodata)
         source->lpVtbl->Release(source);
     }
     return result;
-}
+}*/
 
 #define SAFE_RELEASE(p)                             \
 {                                                   \
