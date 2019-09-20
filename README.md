@@ -3,6 +3,11 @@
 # esy-sdl2
 Esy-enabled build for [SDL2](https://www.libsdl.org/)
 
+# Modifications
+
+A patch by xenotron007 was applied to enable Windows IME candidate list to be shown:
+https://bugzilla.libsdl.org/attachment.cgi?id=3604&action=diff
+
 # License
 
 [SDL License](./LICENSE)
