@@ -18,6 +18,10 @@
         "SDL2_LIB_PATH": {
             "val": "#{self.lib}",
             "scope": "global"
+        },
+        "CAML_LD_LIBRARY_PATH": {
+            "val": "#{self.lib : $CAML_LD_LIBRARY_PATH}",
+            "scope": "global"
         }
     }
   },
