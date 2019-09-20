@@ -229,28 +229,40 @@ WIN_StopTextInput(_THIS)
 }
 
 void
+WIN_UpdateTextInputRect(SDL_VideoData *videodata)
+{
+    HIMC himc = ImmGetContext(videodata->ime_hwnd_current);
+    CANDIDATEFORM cf;
+
+    if (!himc)
+        return;
+
+    cf.dwIndex = 0;
+    cf.dwStyle = CFS_EXCLUDE;
+    cf.ptCurrentPos.x = videodata->ime_rect.x;
+    cf.ptCurrentPos.y = videodata->ime_rect.y;
+    cf.rcArea.left = videodata->ime_rect.x;
+    cf.rcArea.top = videodata->ime_rect.y;
+    cf.rcArea.right = videodata->ime_rect.x + videodata->ime_rect.w;
+    cf.rcArea.bottom = videodata->ime_rect.y + videodata->ime_rect.h;
+    ImmSetCandidateWindow(himc, &cf);
+
+    ImmReleaseContext(videodata->ime_hwnd_current, himc);
+}
+
+void
 WIN_SetTextInputRect(_THIS, SDL_Rect *rect)
 {
-    SDL_VideoData *videodata = (SDL_VideoData *)_this->driverdata;
-    HIMC himc = 0;
-
+    SDL_VideoData *videodata;
+    
     if (!rect) {
         SDL_InvalidParamError("rect");
         return;
     }
 
+    videodata = (SDL_VideoData *)_this->driverdata;
     videodata->ime_rect = *rect;
-
-    himc = ImmGetContext(videodata->ime_hwnd_current);
-    if (himc)
-    {
-        COMPOSITIONFORM cf;
-        cf.ptCurrentPos.x = videodata->ime_rect.x;
-        cf.ptCurrentPos.y = videodata->ime_rect.y;
-        cf.dwStyle = CFS_FORCE_POSITION;
-        ImmSetCompositionWindow(himc, &cf);
-        ImmReleaseContext(videodata->ime_hwnd_current, himc);
-    }
+    WIN_UpdateTextInputRect(videodata);
 }
 
 #ifdef SDL_DISABLE_WINDOWS_IME
@@ -331,7 +343,7 @@ static DWORD IME_GetId(SDL_VideoData *videodata, UINT uIndex);
 static void IME_SendEditingEvent(SDL_VideoData *videodata);
 static void IME_DestroyTextures(SDL_VideoData *videodata);
 
-static SDL_bool UILess_SetupSinks(SDL_VideoData *videodata);
+//static SDL_bool UILess_SetupSinks(SDL_VideoData *videodata);
 static void UILess_ReleaseSinks(SDL_VideoData *videodata);
 static void UILess_EnableUIUpdates(SDL_VideoData *videodata);
 static void UILess_DisableUIUpdates(SDL_VideoData *videodata);
@@ -370,7 +382,8 @@ IME_Init(SDL_VideoData *videodata, HWND hwnd)
     videodata->ime_available = SDL_TRUE;
     IME_UpdateInputLocale(videodata);
     IME_SetupAPI(videodata);
-    videodata->ime_uiless = UILess_SetupSinks(videodata);
+    // FIXME: the implementation of UILess IME is incomplete so we disable it by commenting this out:
+    //videodata->ime_uiless = UILess_SetupSinks(videodata);
     IME_UpdateInputLocale(videodata);
     IME_Disable(videodata, hwnd);
 }
@@ -882,6 +895,7 @@ IME_HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM *lParam, SDL_VideoD
         *lParam = 0;
         break;
     case WM_IME_STARTCOMPOSITION:
+        WIN_UpdateTextInputRect(videodata);
         trap = SDL_TRUE;
         break;
     case WM_IME_COMPOSITION:
@@ -1220,7 +1234,7 @@ UILess_DisableUIUpdates(SDL_VideoData *videodata)
     }
 }
 
-static SDL_bool
+/*static SDL_bool
 UILess_SetupSinks(SDL_VideoData *videodata)
 {
     TfClientId clientid = 0;
@@ -1252,7 +1266,7 @@ UILess_SetupSinks(SDL_VideoData *videodata)
         source->lpVtbl->Release(source);
     }
     return result;
-}
+}*/
 
 #define SAFE_RELEASE(p)                             \
 {                                                   \
