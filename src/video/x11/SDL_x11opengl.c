@@ -204,6 +204,9 @@ X11_GL_LoadLibrary(_THIS, const char *path)
     _this->gl_data->glXDestroyContext =
         (void (*)(Display *, GLXContext))
             X11_GL_GetProcAddress(_this, "glXDestroyContext");
+    _this->gl_data->glXCreateWindow =
+        (GLXWindow (*)(Display*, GLXFBConfig, Window, const int*))
+            X11_GL_GetProcAddress(_this, "glXCreateWindow");
     _this->gl_data->glXMakeCurrent =
         (int (*)(Display *, GLXDrawable, GLXContext))
             X11_GL_GetProcAddress(_this, "glXMakeCurrent");
@@ -216,6 +219,7 @@ X11_GL_LoadLibrary(_THIS, const char *path)
 
     if (!_this->gl_data->glXQueryExtension ||
         !_this->gl_data->glXChooseVisual ||
+        !_this->gl_data->glXCreateWindow ||
         !_this->gl_data->glXCreateContext ||
         !_this->gl_data->glXDestroyContext ||
         !_this->gl_data->glXMakeCurrent ||
@@ -764,6 +768,7 @@ X11_GL_CreateContext(_THIS, SDL_Window * window)
                         *pvistypeattr = None;
                         framebuffer_config = _this->gl_data->glXChooseFBConfig(display,
                                           DefaultScreen(display), glxAttribs,
+<<<<<<< HEAD
                                           &fbcount);
                     }
             
@@ -772,6 +777,18 @@ X11_GL_CreateContext(_THIS, SDL_Window * window)
                                                         framebuffer_config[0],
                                                         share_context, True, attribs);
                         X11_XFree(framebuffer_config);
+=======
+                                          &fbcount))) {
+                    SDL_SetError("No good framebuffers found. OpenGL 3.0 and later unavailable");
+                } else {
+                    context = _this->gl_data->glXCreateContextAttribsARB(display,
+                                                    framebuffer_config[0],
+                                                    share_context, True, attribs);
+                    
+                    if (context) {
+                        // We call this to generate a valid GLXDrawable
+                        data->glxwindow = _this->gl_data->glXCreateWindow(display, framebuffer_config[0], data->xwindow, NULL);
+>>>>>>> 0c4e26acc... GLX: Create and use a glXWindow along with the usual X11 Window.  This is to fix an ongoing issue w/ the Oculus Rift SDK's use of the current drawable as source for its GLXFBConfig.. which fails w/ Gallium open source GLX drivers.
                     }
                 }
             }
@@ -799,15 +816,23 @@ X11_GL_CreateContext(_THIS, SDL_Window * window)
 int
 X11_GL_MakeCurrent(_THIS, SDL_Window * window, SDL_GLContext context)
 {
+<<<<<<< HEAD
     Display *display = ((SDL_VideoData *) _this->driverdata)->display;
     Window drawable =
         (context ? ((SDL_WindowData *) window->driverdata)->xwindow : None);
     GLXContext glx_context = (GLXContext) context;
     int rc;
 
+=======
+>>>>>>> 0c4e26acc... GLX: Create and use a glXWindow along with the usual X11 Window.  This is to fix an ongoing issue w/ the Oculus Rift SDK's use of the current drawable as source for its GLXFBConfig.. which fails w/ Gallium open source GLX drivers.
     if (!_this->gl_data) {
         return SDL_SetError("OpenGL not initialized");
     }
+    
+    Display *display = ((SDL_VideoData *) _this->driverdata)->display;
+    GLXWindow drawable =
+        (context ? ((SDL_WindowData *) window->driverdata)->glxwindow : None);
+    GLXContext glx_context = (GLXContext) context;
 
     /* We do this to create a clean separation between X and GLX errors. */
     X11_XSync(display, False);
@@ -848,7 +873,7 @@ X11_GL_SetSwapInterval(_THIS, int interval)
         const SDL_WindowData *windowdata = (SDL_WindowData *)
             SDL_GL_GetCurrentWindow()->driverdata;
 
-        Window drawable = windowdata->xwindow;
+        Window drawable = windowdata->glxwindow;
 
         /*
          * This is a workaround for a bug in NVIDIA drivers. Bug has been reported
@@ -891,7 +916,7 @@ X11_GL_GetSwapInterval(_THIS)
         Display *display = ((SDL_VideoData *) _this->driverdata)->display;
         const SDL_WindowData *windowdata = (SDL_WindowData *)
             SDL_GL_GetCurrentWindow()->driverdata;
-        Window drawable = windowdata->xwindow;
+        Window drawable = windowdata->glxwindow;
         unsigned int allow_late_swap_tearing = 0;
         unsigned int interval = 0;
 
@@ -922,8 +947,12 @@ X11_GL_SwapWindow(_THIS, SDL_Window * window)
     SDL_WindowData *data = (SDL_WindowData *) window->driverdata;
     Display *display = data->videodata->display;
 
+<<<<<<< HEAD
     _this->gl_data->glXSwapBuffers(display, data->xwindow);
     return 0;
+=======
+    _this->gl_data->glXSwapBuffers(display, data->glxwindow);
+>>>>>>> 0c4e26acc... GLX: Create and use a glXWindow along with the usual X11 Window.  This is to fix an ongoing issue w/ the Oculus Rift SDK's use of the current drawable as source for its GLXFBConfig.. which fails w/ Gallium open source GLX drivers.
 }
 
 void

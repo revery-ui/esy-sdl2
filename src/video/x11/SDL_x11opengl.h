@@ -54,6 +54,7 @@ struct SDL_GLDriverData
     GLXContext (*glXCreateContextAttribsARB) (Display*,GLXFBConfig,GLXContext,Bool,const int *);
     GLXFBConfig *(*glXChooseFBConfig) (Display*,int,const int *,int *);
     void (*glXDestroyContext) (Display*, GLXContext);
+    GLXWindow (*glXCreateWindow) (Display*,GLXFBConfig,Window,const int*);
     Bool(*glXMakeCurrent) (Display*,GLXDrawable,GLXContext);
     void (*glXSwapBuffers) (Display*, GLXDrawable);
     void (*glXQueryDrawable) (Display*,GLXDrawable,int,unsigned int*);
