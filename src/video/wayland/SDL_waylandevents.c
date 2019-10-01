@@ -355,6 +355,7 @@ pointer_handle_axis_common(struct SDL_WaylandInput *input,
     enum wl_pointer_axis a = axis;
     float x, y;
 
+    printf("our axis common getting called\n");
     if (input->pointer_focus) {
         switch (a) {
             case WL_POINTER_AXIS_VERTICAL_SCROLL:
@@ -382,16 +383,43 @@ pointer_handle_axis(void *data, struct wl_pointer *pointer,
     pointer_handle_axis_common(input, time, axis, value);
 }
 
+static void
+pointer_handle_frame(void *data, struct wl_pointer *pointer)
+{
+    printf("frame event\n");
+}
+
+static void
+pointer_handle_axis_source(void *data, struct wl_pointer *pointer,
+                           uint32_t axis_source)
+{
+    printf("axis source event\n");
+}
+
+static void
+pointer_handle_axis_stop(void *data, struct wl_pointer *pointer,
+                         uint32_t time, uint32_t axis)
+{
+    printf("axis stop called\n");
+}
+
+static void
+pointer_handle_axis_discrete(void *data, struct wl_pointer *pointer,
+                             uint32_t axis, uint32_t discrete)
+{
+    printf("axis discrete called\n");
+}
+
 static const struct wl_pointer_listener pointer_listener = {
     pointer_handle_enter,
     pointer_handle_leave,
     pointer_handle_motion,
     pointer_handle_button,
     pointer_handle_axis,
-    NULL, /* frame */
-    NULL, /* axis_source */
-    NULL, /* axis_stop */
-    NULL, /* axis_discrete */
+    pointer_handle_frame,
+    pointer_handle_axis_source,
+    pointer_handle_axis_stop,
+    pointer_handle_axis_discrete,
 };
 
 static void
@@ -583,13 +611,20 @@ keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
                           mods_locked, 0, 0, group);
 }
 
+static void
+keyboard_handle_repeat_info(void *data, struct wl_keyboard *keyboard,
+                            int32_t rate, int32_t delay)
+{
+    printf("got keyboard repeat info %d rate, %d delay\n", rate, delay);
+}
+
 static const struct wl_keyboard_listener keyboard_listener = {
     keyboard_handle_keymap,
     keyboard_handle_enter,
     keyboard_handle_leave,
     keyboard_handle_key,
     keyboard_handle_modifiers,
-    NULL, /* repeat_info */
+    keyboard_handle_repeat_info,
 };
 
 static void
@@ -633,9 +668,15 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
     }
 }
 
+static void
+seat_handle_name(void *data, struct wl_seat *seat, char *name)
+{
+    printf("seat has name %s\n", name);
+}
+
 static const struct wl_seat_listener seat_listener = {
     seat_handle_capabilities,
-    NULL, /* name */
+    seat_handle_name,
 };
 
 static void
@@ -883,7 +924,7 @@ Wayland_display_add_input(SDL_VideoData *d, uint32_t id)
         return;
 
     input->display = d;
-    input->seat = wl_registry_bind(d->registry, id, &wl_seat_interface, 1);
+    input->seat = wl_registry_bind(d->registry, id, &wl_seat_interface, 5);
     input->sx_w = wl_fixed_from_int(0);
     input->sy_w = wl_fixed_from_int(0);
     d->input = input;
