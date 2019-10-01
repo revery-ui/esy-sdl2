@@ -768,16 +768,6 @@ X11_GL_CreateContext(_THIS, SDL_Window * window)
                         *pvistypeattr = None;
                         framebuffer_config = _this->gl_data->glXChooseFBConfig(display,
                                           DefaultScreen(display), glxAttribs,
-<<<<<<< HEAD
-                                          &fbcount);
-                    }
-            
-                    if (framebuffer_config) {
-                        context = _this->gl_data->glXCreateContextAttribsARB(display,
-                                                        framebuffer_config[0],
-                                                        share_context, True, attribs);
-                        X11_XFree(framebuffer_config);
-=======
                                           &fbcount))) {
                     SDL_SetError("No good framebuffers found. OpenGL 3.0 and later unavailable");
                 } else {
@@ -788,7 +778,6 @@ X11_GL_CreateContext(_THIS, SDL_Window * window)
                     if (context) {
                         // We call this to generate a valid GLXDrawable
                         data->glxwindow = _this->gl_data->glXCreateWindow(display, framebuffer_config[0], data->xwindow, NULL);
->>>>>>> 0c4e26acc... GLX: Create and use a glXWindow along with the usual X11 Window.  This is to fix an ongoing issue w/ the Oculus Rift SDK's use of the current drawable as source for its GLXFBConfig.. which fails w/ Gallium open source GLX drivers.
                     }
                 }
             }
@@ -816,15 +805,6 @@ X11_GL_CreateContext(_THIS, SDL_Window * window)
 int
 X11_GL_MakeCurrent(_THIS, SDL_Window * window, SDL_GLContext context)
 {
-<<<<<<< HEAD
-    Display *display = ((SDL_VideoData *) _this->driverdata)->display;
-    Window drawable =
-        (context ? ((SDL_WindowData *) window->driverdata)->xwindow : None);
-    GLXContext glx_context = (GLXContext) context;
-    int rc;
-
-=======
->>>>>>> 0c4e26acc... GLX: Create and use a glXWindow along with the usual X11 Window.  This is to fix an ongoing issue w/ the Oculus Rift SDK's use of the current drawable as source for its GLXFBConfig.. which fails w/ Gallium open source GLX drivers.
     if (!_this->gl_data) {
         return SDL_SetError("OpenGL not initialized");
     }
@@ -947,12 +927,8 @@ X11_GL_SwapWindow(_THIS, SDL_Window * window)
     SDL_WindowData *data = (SDL_WindowData *) window->driverdata;
     Display *display = data->videodata->display;
 
-<<<<<<< HEAD
-    _this->gl_data->glXSwapBuffers(display, data->xwindow);
-    return 0;
-=======
     _this->gl_data->glXSwapBuffers(display, data->glxwindow);
->>>>>>> 0c4e26acc... GLX: Create and use a glXWindow along with the usual X11 Window.  This is to fix an ongoing issue w/ the Oculus Rift SDK's use of the current drawable as source for its GLXFBConfig.. which fails w/ Gallium open source GLX drivers.
+    return 0;
 }
 
 void
