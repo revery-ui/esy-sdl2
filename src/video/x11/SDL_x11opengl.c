@@ -763,19 +763,26 @@ X11_GL_CreateContext(_THIS, SDL_Window * window)
                     framebuffer_config = _this->gl_data->glXChooseFBConfig(display,
                                           DefaultScreen(display), glxAttribs,
                                           &fbcount);
-                }
 
-                if (framebuffer_config) {
-                    context = _this->gl_data->glXCreateContextAttribsARB(display,
-                                                    framebuffer_config[0],
-                                                    share_context, True, attribs);
-
-                    if (context) {
-                        // We call this to generate a valid GLXDrawable
-                        data->glxwindow = _this->gl_data->glXCreateWindow(display, framebuffer_config[0], data->xwindow, NULL);
+                    if (!framebuffer_config && (pvistypeattr != NULL)) {
+                        *pvistypeattr = None;
+                        framebuffer_config = _this->gl_data->glXChooseFBConfig(display,
+                                          DefaultScreen(display), glxAttribs,
+                                          &fbcount);
                     }
-
-                    X11_XFree(framebuffer_config);
+            
+                    if (framebuffer_config) {
+                        context = _this->gl_data->glXCreateContextAttribsARB(display,
+                                                        framebuffer_config[0],
+                                                        share_context, True, attribs);
+                        
+                        if (context) {
+                            // We call this to generate a valid GLXDrawable
+                            data->glxwindow = _this->gl_data->glXCreateWindow(display, framebuffer_config[0], data->xwindow, NULL);
+                        }
+                        
+                        X11_XFree(framebuffer_config);
+                    }
                 }
 
             }
