@@ -807,17 +807,19 @@ X11_GL_CreateContext(_THIS, SDL_Window * window)
     return context;
 }
 
-int X11_GL_MakeCurrent(_THIS, SDL_Window * window, SDL_GLContext context)
+int 
+X11_GL_MakeCurrent(_THIS, SDL_Window * window, SDL_GLContext context)
 {
-    if (!_this->gl_data) {
-        return SDL_SetError("OpenGL not initialized");
-    }
-    
     Display *display = ((SDL_VideoData *) _this->driverdata)->display;
     GLXWindow drawable =
         (context ? ((SDL_WindowData *) window->driverdata)->glxwindow : None);
     GLXContext glx_context = (GLXContext) context;
+    int rc;
 
+    if (!_this->gl_data) {
+        return SDL_SetError("OpenGL not initialized");
+    }
+    
     /* We do this to create a clean separation between X and GLX errors. */
     X11_XSync(display, False);
     errorHandlerOperation = "make GL context current";
