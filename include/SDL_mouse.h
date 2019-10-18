@@ -71,6 +71,7 @@ typedef enum
 
 /**
  * source_type indicates what kind of device dispatched this wheel event.
+ * 0: Event source can be assumed to be the previous one used
  * 1: Undefined/unknown source
  * 2: Touchscreen or other absolute pointing device generated event
  * 3: Touchpad or other relative pointing device generated event
@@ -81,6 +82,7 @@ typedef enum
  */
 typedef enum
 {
+    SDL_MOUSEWHEEL_LAST,
     SDL_MOUSEWHEEL_SOURCE_UNDEFINED,
     SDL_MOUSEWHEEL_SOURCE_TOUCHSCREEN,
     SDL_MOUSEWHEEL_SOURCE_TOUCHPAD,

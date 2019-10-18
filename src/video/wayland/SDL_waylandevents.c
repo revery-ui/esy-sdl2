@@ -394,7 +394,21 @@ static void
 pointer_handle_axis_source(void *data, struct wl_pointer *pointer,
                            uint32_t axis_source)
 {
-    printf("axis source event\n");
+    struct SDL_WaylandInput *input = data;
+    SDL_WindowData *window = input->pointer_focus;
+
+    int source;
+
+    switch(axis_source) {
+        case 0: source = SDL_MOUSEWHEEL_SOURCE_WHEEL;
+        case 1: source = SDL_MOUSEWHEEL_SOURCE_TOUCHPAD;
+        case 2: source = SDL_MOUSEWHEEL_SOURCE_OTHER_NONKINETIC;
+        case 3: source = SDL_MOUSEWHEEL_SOURCE_OTHER_NONKINETIC;
+        default: source = SDL_MOUSEWHEEL_SOURCE_UNDEFINED;
+    }
+
+    SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 0, 0, source);
+    //printf("axis source event\n");
 }
 
 static void
@@ -408,7 +422,17 @@ static void
 pointer_handle_axis_discrete(void *data, struct wl_pointer *pointer,
                              uint32_t axis, uint32_t discrete)
 {
-    printf("axis discrete called\n");
+    struct SDL_WaylandInput *input = data;
+    SDL_WindowData *window = input->pointer_focus;
+    Uint64 x = 0;
+    Uint64 y = 0;
+
+    switch(axis) {
+        case 0: y = discrete;
+        case 1: x = discrete;
+    }
+
+    SDL_SendPanEvent(window->sdlwindow, 0, x, y, !!x, !!y, 0, 0, SDL_MOUSEWHEEL_SOURCE_WHEEL);
 }
 
 static const struct wl_pointer_listener pointer_listener = {
