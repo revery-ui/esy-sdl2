@@ -379,8 +379,22 @@ pointer_handle_axis(void *data, struct wl_pointer *pointer,
                     uint32_t time, uint32_t axis, wl_fixed_t value)
 {
     struct SDL_WaylandInput *input = data;
+    SDL_WindowData *window = input->pointer_focus;
 
+    Uint64 x = 0;
+    Uint64 y = 0;
+
+
+    // dispatch legacy scroll event
     pointer_handle_axis_common(input, time, axis, value);
+
+    // dispatch new pan event
+    switch(axis) {
+        case 0: y = value;
+        case 1: x = value;
+    }
+
+    SDL_SendPanEvent(window->sdlwindow, 0, x, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
 }
 
 static void
@@ -415,7 +429,11 @@ static void
 pointer_handle_axis_stop(void *data, struct wl_pointer *pointer,
                          uint32_t time, uint32_t axis)
 {
-    printf("axis stop called\n");
+    struct SDL_WaylandInput *input = data;
+    SDL_WindowData *window = input->pointer_focus;
+
+    SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 1, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
+    //printf("axis stop called\n");
 }
 
 static void
@@ -432,7 +450,7 @@ pointer_handle_axis_discrete(void *data, struct wl_pointer *pointer,
         case 1: x = discrete;
     }
 
-    SDL_SendPanEvent(window->sdlwindow, 0, x, y, !!x, !!y, 0, 0, SDL_MOUSEWHEEL_SOURCE_WHEEL);
+    SDL_SendPanEvent(window->sdlwindow, 0, x, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_WHEEL);
 }
 
 static const struct wl_pointer_listener pointer_listener = {
