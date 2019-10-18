@@ -665,8 +665,8 @@ int
 SDL_SendPanEvent(
         SDL_Window * window,
         SDL_MouseID mouseID,
-        Uint64 precise_x,
-        Uint64 precise_y,
+        Sint64 precise_x,
+        Sint64 precise_y,
         Uint8 contains_x,
         Uint8 contains_y,
         Uint8 is_fling,
@@ -674,6 +674,9 @@ SDL_SendPanEvent(
         SDL_MouseWheelSource source_type
 ) {
     SDL_Mouse *mouse = SDL_GetMouse();
+
+    printf("Dispatches a pan event with params %lu, %lu, %d, %d, %d, %d, %d\n",
+            precise_x, precise_y, contains_x, contains_y, is_fling, is_interrupt, source_type);
 
     if (SDL_GetEventState(SDL_PANEVENT) == SDL_ENABLE) {
         SDL_Event event;
