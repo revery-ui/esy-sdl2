@@ -69,6 +69,27 @@ typedef enum
     SDL_MOUSEWHEEL_FLIPPED    /**< The scroll direction is flipped / natural */
 } SDL_MouseWheelDirection;
 
+/**
+ * source_type indicates what kind of device dispatched this wheel event.
+ * 1: Undefined/unknown source
+ * 2: Touchscreen or other absolute pointing device generated event
+ * 3: Touchpad or other relative pointing device generated event
+ * 4: Standard mouse wheel generated this event, each unit in scalar_[...] is a single notch/click
+ * 5: Precise mouse wheel generated this event, each unit in scalar_[...] is significantly smaller than a single notch/click
+ * 6: Other/non-kinetic: each unit should be treated as a scaled DP, acceleration/processing is already applied by driver. Do not apply kinetic scrolling on fling event
+ * 7: Other/kinetic: same as other/non-kinetic, but *do* apply kinetic scrolling on fling event
+ */
+typedef enum
+{
+    SDL_MOUSEWHEEL_SOURCE_UNDEFINED,
+    SDL_MOUSEWHEEL_SOURCE_TOUCHSCREEN,
+    SDL_MOUSEWHEEL_SOURCE_TOUCHPAD,
+    SDL_MOUSEWHEEL_SOURCE_WHEEL,
+    SDL_MOUSEWHEEL_SOURCE_WHEEL_PRECISE,
+    SDL_MOUSEWHEEL_SOURCE_OTHER_NONKINETIC,
+    SDL_MOUSEWHEEL_SOURCE_OTHER_KINETIC,
+} SDL_MouseWheelSource;
+
 /* Function prototypes */
 
 /**

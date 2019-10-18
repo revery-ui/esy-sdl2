@@ -283,6 +283,15 @@ typedef struct SDL_MouseButtonEvent
 /**
  *  \brief Mouse wheel event structure (event.wheel.*)
  */
+
+//TODO: fix abi compatibility here
+//these changes temporarily ignore any alignment
+//disturbances for the sake of prototyping
+//
+//TODO:
+//may temporarily overfit event to
+//conform with libtouch; revisit api
+//later to make more generic
 typedef struct SDL_MouseWheelEvent
 {
     Uint32 type;        /**< ::SDL_MOUSEWHEEL */
@@ -292,6 +301,23 @@ typedef struct SDL_MouseWheelEvent
     Sint32 x;           /**< The amount scrolled horizontally, positive to the right and negative to the left */
     Sint32 y;           /**< The amount scrolled vertically, positive away from the user and negative toward the user */
     Uint32 direction;   /**< Set to one of the SDL_MOUSEWHEEL_* defines. When FLIPPED the values in X and Y will be opposite. Multiply by -1 to change them back */
+    Uint8  contains_x: 1; /**< Indicates event contains a useful value in scalar_x and a pan should be calculated */
+    Uint8  contains_y: 1; /**< Indicates event contains a useful value in scalar_y and a pan should be calculated */
+    Uint8  interrupt: 1;  /**< If some fling event was dispatched, this is intended to terminate it */
+    Uint8  fling: 1;      /**< Indicates the user has "flung" the wheel and kinetic scrolling (if enabled) should begin here */
+    Uint64 scalar_x;      /**< Precise scrolling amount on x axis. If aware, use this rather than .x, .x is only included for backwards compatibility */
+    Uint64 scalar_y;      /**< Precise scrolling amount on y axis. If aware, use this rather than .y, .y is only included for backwards compatibility */
+    /**
+     * source_type indicates what kind of device dispatched this wheel event.
+     * 1: Undefined/unknown source
+     * 2: Touchscreen or other absolute pointing device generated event
+     * 3: Touchpad or other relative pointing device generated event
+     * 4: Standard mouse wheel generated this event, each unit in scalar_[...] is a single notch/click
+     * 5: Precise mouse wheel generated this event, each unit in scalar_[...] is significantly smaller than a single notch/click
+     * 6: Other/non-kinetic: each unit should be treated as a scaled DP, acceleration/processing is already applied by driver. Do not apply kinetic scrolling on fling event
+     * 7: Other/kinetic: same as other/non-kinetic, but *do* apply kinetic scrolling on fling event
+     */
+    Uint32 source_type; /**< One of SDL_MOUSEWHEEL_SOURCE_[...] */
 } SDL_MouseWheelEvent;
 
 /**

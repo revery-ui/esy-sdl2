@@ -188,7 +188,7 @@ SDL_GetMouseFocus(void)
     return mouse->focus;
 }
 
-#if 0
+#if 0 // TODO: document what this does
 void
 SDL_ResetMouse(void)
 {
