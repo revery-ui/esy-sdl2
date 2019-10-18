@@ -386,7 +386,8 @@ pointer_handle_axis(void *data, struct wl_pointer *pointer,
 static void
 pointer_handle_frame(void *data, struct wl_pointer *pointer)
 {
-    printf("frame event\n");
+    //Event may be extraneous, TODO: wait for documentation of event to improve, revisit after
+    //printf("frame event\n");
 }
 
 static void

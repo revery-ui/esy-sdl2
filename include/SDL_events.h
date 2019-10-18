@@ -154,6 +154,9 @@ typedef enum
     SDL_RENDER_TARGETS_RESET = 0x2000, /**< The render targets have been reset and their contents need to be updated */
     SDL_RENDER_DEVICE_RESET, /**< The device has been reset and all textures need to be recreated */
 
+    /* Pan events */
+    SDL_PANEVENT = 0x2100,
+
     /** Events ::SDL_USEREVENT through ::SDL_LASTEVENT are for your use,
      *  and should be allocated with SDL_RegisterEvents()
      */
@@ -292,6 +295,20 @@ typedef struct SDL_MouseButtonEvent
 //may temporarily overfit event to
 //conform with libtouch; revisit api
 //later to make more generic
+//TODO:
+//try to attempt backwards compatibility.
+//This may actually be impossible for some devices in some cases
+//
+//Legacy events will still need to be dispatched, though we
+//may be able to conceal each type from each other
+//
+//NOTE: instead of adding to the same event,
+//precise events are being abstracted out into a different type
+//of event (PanEvent)
+//
+//NOTE to users:
+//after change is complete, it should be possible to completely ignore
+//mouse wheel events and only listen to PanEvents
 typedef struct SDL_MouseWheelEvent
 {
     Uint32 type;        /**< ::SDL_MOUSEWHEEL */
@@ -301,24 +318,22 @@ typedef struct SDL_MouseWheelEvent
     Sint32 x;           /**< The amount scrolled horizontally, positive to the right and negative to the left */
     Sint32 y;           /**< The amount scrolled vertically, positive away from the user and negative toward the user */
     Uint32 direction;   /**< Set to one of the SDL_MOUSEWHEEL_* defines. When FLIPPED the values in X and Y will be opposite. Multiply by -1 to change them back */
-    Uint8  contains_x: 1; /**< Indicates event contains a useful value in scalar_x and a pan should be calculated */
-    Uint8  contains_y: 1; /**< Indicates event contains a useful value in scalar_y and a pan should be calculated */
-    Uint8  interrupt: 1;  /**< If some fling event was dispatched, this is intended to terminate it */
-    Uint8  fling: 1;      /**< Indicates the user has "flung" the wheel and kinetic scrolling (if enabled) should begin here */
-    Uint64 scalar_x;      /**< Precise scrolling amount on x axis. If aware, use this rather than .x, .x is only included for backwards compatibility */
-    Uint64 scalar_y;      /**< Precise scrolling amount on y axis. If aware, use this rather than .y, .y is only included for backwards compatibility */
-    /**
-     * source_type indicates what kind of device dispatched this wheel event.
-     * 1: Undefined/unknown source
-     * 2: Touchscreen or other absolute pointing device generated event
-     * 3: Touchpad or other relative pointing device generated event
-     * 4: Standard mouse wheel generated this event, each unit in scalar_[...] is a single notch/click
-     * 5: Precise mouse wheel generated this event, each unit in scalar_[...] is significantly smaller than a single notch/click
-     * 6: Other/non-kinetic: each unit should be treated as a scaled DP, acceleration/processing is already applied by driver. Do not apply kinetic scrolling on fling event
-     * 7: Other/kinetic: same as other/non-kinetic, but *do* apply kinetic scrolling on fling event
-     */
-    Uint32 source_type; /**< One of SDL_MOUSEWHEEL_SOURCE_[...] */
 } SDL_MouseWheelEvent;
+
+typedef struct SDL_PanEvent
+{
+    Uint32 type;          /**< ::SDL_PANEVENT */
+    Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
+    Uint32 windowID;    /**< The window with mouse focus, if any */
+    Uint32 which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
+    Uint8  contains_x; /**< Indicates event contains a useful value in scalar_x and a pan should be calculated */
+    Uint8  contains_y; /**< Indicates event contains a useful value in scalar_y and a pan should be calculated */
+    Uint8  interrupt;  /**< If some fling event was dispatched, this is intended to terminate it */
+    Uint8  fling;      /**< Indicates the user has "flung" the wheel and kinetic scrolling (if enabled) should begin here */
+    Uint64 x;      /**< Precise scrolling amount on x axis. */
+    Uint64 y;      /**< Precise scrolling amount on y axis. */
+    Uint32 source_type; /**< One of SDL_MOUSEWHEEL_SOURCE_[...] */
+} SDL_PanEvent;
 
 /**
  *  \brief Joystick axis motion event structure (event.jaxis.*)
@@ -609,6 +624,8 @@ typedef union SDL_Event
     SDL_MultiGestureEvent mgesture; /**< Gesture event data */
     SDL_DollarGestureEvent dgesture; /**< Gesture event data */
     SDL_DropEvent drop;             /**< Drag and drop event data */
+    
+    SDL_PanEvent pan; /**< Obsolesces mouse wheel events */
 
     /* This is necessary for ABI compatibility between Visual C++ and GCC
        Visual C++ will respect the push pack pragma and use 52 bytes for

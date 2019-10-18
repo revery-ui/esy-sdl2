@@ -661,6 +661,37 @@ SDL_SendMouseWheel(SDL_Window * window, SDL_MouseID mouseID, float x, float y, S
     return posted;
 }
 
+int
+SDL_SendPanEvent(
+        SDL_Window * window,
+        SDL_MouseID mouseID,
+        int64 precise_x,
+        int64 precise_y,
+        Uint8 contains_x,
+        Uint8 contains_y,
+        Uint8 is_fling,
+        Uint8 is_interrupt,
+        SDL_MouseWheelSource source_type,
+) {
+    if (SDL_GetEventState(SDL_PAN) == SDL_ENABLE) {
+        SDL_Event event;
+        event.type = SDL_PANEVENT;
+        event.pan.windowID = mouse->focus ? mouse->focus->id : 0;
+        event.pan.which = mouseID;
+        event.pan.contains_x = contains_x;
+        event.pan.contains_y = contains_y;
+        event.pan.x = precise_x;
+        event.pan.y = precise_y;
+        event.pan.is_fling = is_fling;
+        event.pan.is_interrupt = is_interrupt;
+        event.pan.source_type = source_type;
+
+        return SDL_PushEvent(&event) > 0;
+    } else {
+        return 0;
+    }
+}
+
 void
 SDL_MouseQuit(void)
 {
