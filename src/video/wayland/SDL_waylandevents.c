@@ -355,7 +355,6 @@ pointer_handle_axis_common(struct SDL_WaylandInput *input,
     enum wl_pointer_axis a = axis;
     float x, y;
 
-    printf("our axis common getting called\n");
     if (input->pointer_focus) {
         switch (a) {
             case WL_POINTER_AXIS_VERTICAL_SCROLL:
@@ -401,7 +400,6 @@ static void
 pointer_handle_frame(void *data, struct wl_pointer *pointer)
 {
     //Event may be extraneous, TODO: wait for documentation of event to improve, revisit after
-    //printf("frame event\n");
 }
 
 static void
@@ -422,7 +420,6 @@ pointer_handle_axis_source(void *data, struct wl_pointer *pointer,
     }
 
     SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 0, 0, source);
-    //printf("axis source event\n");
 }
 
 static void
@@ -433,7 +430,6 @@ pointer_handle_axis_stop(void *data, struct wl_pointer *pointer,
     SDL_WindowData *window = input->pointer_focus;
 
     SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 1, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
-    //printf("axis stop called\n");
 }
 
 static void
@@ -658,7 +654,6 @@ static void
 keyboard_handle_repeat_info(void *data, struct wl_keyboard *keyboard,
                             int32_t rate, int32_t delay)
 {
-    printf("got keyboard repeat info %d rate, %d delay\n", rate, delay);
 }
 
 static const struct wl_keyboard_listener keyboard_listener = {
