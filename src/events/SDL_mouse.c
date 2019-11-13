@@ -675,12 +675,12 @@ SDL_SendPanEvent(
 ) {
     SDL_Mouse *mouse = SDL_GetMouse();
 
-    printf("Dispatches a pan event with params %lu, %lu, %d, %d, %d, %d, %d\n",
+    printf("Dispatches a pan event with params %d, %d, %d, %d, %d, %d, %d\n",
             precise_x, precise_y, contains_x, contains_y, is_fling, is_interrupt, source_type);
 
     if( SDL_GetEventState(SDL_PANEVENT) == SDL_ENABLE ) {
         SDL_Event event;
-        printf("Pan event was enabled\n");
+        //printf("Pan event was enabled\n");
         event.type = SDL_PANEVENT;
         event.pan.windowID = mouse->focus ? mouse->focus->id : 0;
         event.pan.which = mouseID;

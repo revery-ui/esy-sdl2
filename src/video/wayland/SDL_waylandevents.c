@@ -385,12 +385,13 @@ pointer_handle_axis(void *data, struct wl_pointer *pointer,
 
 
     // dispatch legacy scroll event
-    pointer_handle_axis_common(input, time, axis, value);
+    // disabled temporarily while Revery stabilizes on support
+    // pointer_handle_axis_common(input, time, axis, value);
 
     // dispatch new pan event
     switch(axis) {
-        case 0: y = value;
-        case 1: x = value;
+        case 0: y = value; break;
+        case 1: x = value; break;
     }
 
     SDL_SendPanEvent(window->sdlwindow, 0, x, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
