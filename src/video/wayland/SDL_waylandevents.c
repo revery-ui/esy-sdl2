@@ -355,6 +355,7 @@ pointer_handle_axis_common(struct SDL_WaylandInput *input,
     enum wl_pointer_axis a = axis;
     float x, y;
 
+    printf("axis common, value %d, axis %d\n", value, axis);
     if (input->pointer_focus) {
         switch (a) {
             case WL_POINTER_AXIS_VERTICAL_SCROLL:
@@ -383,6 +384,7 @@ pointer_handle_axis(void *data, struct wl_pointer *pointer,
     Uint64 x = 0;
     Uint64 y = 0;
 
+    printf("axis value %d on axis %d\n", value, axis);
 
     // dispatch legacy scroll event
     // disabled temporarily while Revery stabilizes on support
@@ -412,6 +414,7 @@ pointer_handle_axis_source(void *data, struct wl_pointer *pointer,
 
     int source;
 
+    printf("source %d\n", axis_source);
     switch(axis_source) {
         case 0: source = SDL_MOUSEWHEEL_SOURCE_WHEEL;
         case 1: source = SDL_MOUSEWHEEL_SOURCE_TOUCHPAD;
@@ -430,6 +433,7 @@ pointer_handle_axis_stop(void *data, struct wl_pointer *pointer,
     struct SDL_WaylandInput *input = data;
     SDL_WindowData *window = input->pointer_focus;
 
+    printf("axis stop on axis %d, time %d\n", axis, time);
     SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 1, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
 }
 
@@ -442,6 +446,7 @@ pointer_handle_axis_discrete(void *data, struct wl_pointer *pointer,
     Uint64 x = 0;
     Uint64 y = 0;
 
+    printf("descrite with %d\n", discrete);
     switch(axis) {
         case 0: y = discrete;
         case 1: x = discrete;
