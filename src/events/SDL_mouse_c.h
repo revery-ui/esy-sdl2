@@ -134,6 +134,9 @@ extern int SDL_SendMouseButtonClicks(SDL_Window * window, SDL_MouseID mouseID, U
 /* Send a mouse wheel event */
 extern int SDL_SendMouseWheel(SDL_Window * window, SDL_MouseID mouseID, float x, float y, SDL_MouseWheelDirection direction);
 
+/* Send a pan/scroll event */
+extern int SDL_SendPanEvent( SDL_Window * window, SDL_MouseID mouseID, Sint64 precise_x, Sint64 precise_y, Uint8 contains_x, Uint8 contains_y, Uint8 is_fling, Uint8 is_interrupt, SDL_MouseWheelSource source_type);
+
 /* Shutdown the mouse subsystem */
 extern void SDL_MouseQuit(void);
 
