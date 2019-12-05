@@ -378,8 +378,75 @@ pointer_handle_axis(void *data, struct wl_pointer *pointer,
                     uint32_t time, uint32_t axis, wl_fixed_t value)
 {
     struct SDL_WaylandInput *input = data;
+    SDL_WindowData *window = input->pointer_focus;
 
-    pointer_handle_axis_common(input, time, axis, value);
+    Uint64 x = 0;
+    Uint64 y = 0;
+
+    // dispatch legacy scroll event
+    // disabled temporarily while Revery stabilizes on support
+    // pointer_handle_axis_common(input, time, axis, value);
+
+    // dispatch new pan event
+    switch(axis) {
+        case 0: y = value; break;
+        case 1: x = value; break;
+    }
+
+    SDL_SendPanEvent(window->sdlwindow, 0, x, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
+}
+
+static void
+pointer_handle_frame(void *data, struct wl_pointer *pointer)
+{
+    //Event may be extraneous, TODO: wait for documentation of event to improve, revisit after
+}
+
+static void
+pointer_handle_axis_source(void *data, struct wl_pointer *pointer,
+                           uint32_t axis_source)
+{
+    struct SDL_WaylandInput *input = data;
+    SDL_WindowData *window = input->pointer_focus;
+
+    int source;
+
+    switch(axis_source) {
+        case 0: source = SDL_MOUSEWHEEL_SOURCE_WHEEL;
+        case 1: source = SDL_MOUSEWHEEL_SOURCE_TOUCHPAD;
+        case 2: source = SDL_MOUSEWHEEL_SOURCE_OTHER_NONKINETIC;
+        case 3: source = SDL_MOUSEWHEEL_SOURCE_OTHER_NONKINETIC;
+        default: source = SDL_MOUSEWHEEL_SOURCE_UNDEFINED;
+    }
+
+    SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 0, 0, source);
+}
+
+static void
+pointer_handle_axis_stop(void *data, struct wl_pointer *pointer,
+                         uint32_t time, uint32_t axis)
+{
+    struct SDL_WaylandInput *input = data;
+    SDL_WindowData *window = input->pointer_focus;
+
+    SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 1, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
+}
+
+static void
+pointer_handle_axis_discrete(void *data, struct wl_pointer *pointer,
+                             uint32_t axis, uint32_t discrete)
+{
+    struct SDL_WaylandInput *input = data;
+    SDL_WindowData *window = input->pointer_focus;
+    Uint64 x = 0;
+    Uint64 y = 0;
+
+    switch(axis) {
+        case 0: y = discrete;
+        case 1: x = discrete;
+    }
+
+    SDL_SendPanEvent(window->sdlwindow, 0, x, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_WHEEL);
 }
 
 static const struct wl_pointer_listener pointer_listener = {
@@ -388,10 +455,10 @@ static const struct wl_pointer_listener pointer_listener = {
     pointer_handle_motion,
     pointer_handle_button,
     pointer_handle_axis,
-    NULL, /* frame */
-    NULL, /* axis_source */
-    NULL, /* axis_stop */
-    NULL, /* axis_discrete */
+    pointer_handle_frame,
+    pointer_handle_axis_source,
+    pointer_handle_axis_stop,
+    pointer_handle_axis_discrete,
 };
 
 static void
@@ -583,13 +650,19 @@ keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
                           mods_locked, 0, 0, group);
 }
 
+static void
+keyboard_handle_repeat_info(void *data, struct wl_keyboard *keyboard,
+                            int32_t rate, int32_t delay)
+{
+}
+
 static const struct wl_keyboard_listener keyboard_listener = {
     keyboard_handle_keymap,
     keyboard_handle_enter,
     keyboard_handle_leave,
     keyboard_handle_key,
     keyboard_handle_modifiers,
-    NULL, /* repeat_info */
+    keyboard_handle_repeat_info,
 };
 
 static void
@@ -633,9 +706,14 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
     }
 }
 
+static void
+seat_handle_name(void *data, struct wl_seat *seat, char *name)
+{
+}
+
 static const struct wl_seat_listener seat_listener = {
     seat_handle_capabilities,
-    NULL, /* name */
+    seat_handle_name,
 };
 
 static void
@@ -883,7 +961,7 @@ Wayland_display_add_input(SDL_VideoData *d, uint32_t id)
         return;
 
     input->display = d;
-    input->seat = wl_registry_bind(d->registry, id, &wl_seat_interface, 1);
+    input->seat = wl_registry_bind(d->registry, id, &wl_seat_interface, 5);
     input->sx_w = wl_fixed_from_int(0);
     input->sy_w = wl_fixed_from_int(0);
     d->input = input;
