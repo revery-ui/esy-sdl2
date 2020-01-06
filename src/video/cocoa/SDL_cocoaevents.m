@@ -341,7 +341,7 @@ CreateApplicationMenus(void)
     windowMenu = [[NSMenu alloc] initWithTitle:@"Window"];
 
     /* Add menu items */
-    // ONIVIM: Disable this default action
+    // ONIVIM #1169 / #992: Disable this default action
     // [windowMenu addItemWithTitle:@"Close" action:@selector(performClose:) keyEquivalent:@"w"];
 
     [windowMenu addItemWithTitle:@"Minimize" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
