@@ -14,3 +14,10 @@ steps:
     displayName: 'esy build --verbosity=debug'
     env:
       ESY__LOG: 'debug'
+  - task: PublishBuildArtifacts@1
+    displayName: Publish log
+    condition: always()
+    inputs:
+      pathToPublish: "C:\npm\cache\_logs"
+      artifactName: log
+      artifactType: container
