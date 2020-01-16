@@ -18,6 +18,6 @@ steps:
     displayName: Publish log
     condition: always()
     inputs:
-      pathToPublish: "C:\\npm\cache\\_logs"
+      pathToPublish: "C:\\npm\\cache\\_logs"
       artifactName: log
       artifactType: container
