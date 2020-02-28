@@ -412,11 +412,11 @@ pointer_handle_axis_source(void *data, struct wl_pointer *pointer,
     int source;
 
     switch(axis_source) {
-        case 0: source = SDL_MOUSEWHEEL_SOURCE_WHEEL;
-        case 1: source = SDL_MOUSEWHEEL_SOURCE_TOUCHPAD;
-        case 2: source = SDL_MOUSEWHEEL_SOURCE_OTHER_NONKINETIC;
-        case 3: source = SDL_MOUSEWHEEL_SOURCE_OTHER_NONKINETIC;
-        default: source = SDL_MOUSEWHEEL_SOURCE_UNDEFINED;
+        case 0: source = SDL_MOUSEWHEEL_SOURCE_WHEEL; break;
+        case 1: source = SDL_MOUSEWHEEL_SOURCE_TOUCHPAD; break;
+        case 2: source = SDL_MOUSEWHEEL_SOURCE_OTHER_NONKINETIC; break;
+        case 3: source = SDL_MOUSEWHEEL_SOURCE_OTHER_NONKINETIC; break;
+        default: source = SDL_MOUSEWHEEL_SOURCE_UNDEFINED; break;
     }
 
     SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 0, 0, source);
