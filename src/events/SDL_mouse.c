@@ -665,13 +665,11 @@ int
 SDL_SendPanEvent(
         SDL_Window * window,
         SDL_MouseID mouseID,
-        Sint64 precise_x,
-        Sint64 precise_y,
-        Uint8 contains_x,
-        Uint8 contains_y,
+        Sint64 precise_delta,
         Uint8 is_fling,
         Uint8 is_interrupt,
-        SDL_MouseWheelSource source_type
+        SDL_MouseWheelSource source_type,
+        SDL_PanAxis axis
 ) {
     SDL_Mouse *mouse = SDL_GetMouse();
 
@@ -680,13 +678,11 @@ SDL_SendPanEvent(
         event.type = SDL_PANEVENT;
         event.pan.windowID = mouse->focus ? mouse->focus->id : 0;
         event.pan.which = mouseID;
-        event.pan.contains_x = contains_x;
-        event.pan.contains_y = contains_y;
-        event.pan.x = precise_x;
-        event.pan.y = precise_y;
+        event.pan.delta = precise_delta;
         event.pan.fling = is_fling;
         event.pan.interrupt = is_interrupt;
         event.pan.source_type = source_type;
+        event.pan.axis = axis;
         return SDL_PushEvent(&event) > 0;
     } else {
         return 0;

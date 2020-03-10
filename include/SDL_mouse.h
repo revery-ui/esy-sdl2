@@ -92,6 +92,50 @@ typedef enum
     SDL_MOUSEWHEEL_SOURCE_OTHER_KINETIC,
 } SDL_MouseWheelSource;
 
+typedef enum
+{
+    SDL_PAN_AXIS_VERTICAL,
+    SDL_PAN_AXIS_HORIZONTAL,
+    SDL_PAN_AXIS_NONE, /**< Indicates this delta describes no axis. Any event marked with this should not rely on delta being sane or meaningful */
+} SDL_PanAxis;
+
+typedef enum
+{
+    SDL_PANTYPE_PAN,
+    SDL_PANTYPE_FLING,
+    SDL_PANTYPE_INTERRUPT,
+    SDL_PANTYPE_SOURCE,
+} SDL_PanType;
+
+typedef struct SDL_PanType_Pan 
+{
+    SDL_PanAxis axis;
+    Uint64 delta;
+} SDL_PanType_Pan;
+
+typedef struct SDL_PanType_Source 
+{
+    SDL_MouseWheelSource source;
+} SDL_PanType_Source;
+
+typedef struct SDL_PanType_Interrupt 
+{
+    SDL_PanAxis axis;
+} SDL_PanType_Interrupt;
+
+typedef struct SDL_PanType_Fling 
+{
+    SDL_PanAxis axis;
+} SDL_PanType_Fling;
+
+typedef union SDL_PanType_Contents
+{
+    SDL_PanType_Pan pan;
+    SDL_PanType_Source source;
+    SDL_PanType_Interrupt interrupt;
+    SDL_PanType_Fling fling;
+} SDL_PanType_Contents;
+
 /* Function prototypes */
 
 /**

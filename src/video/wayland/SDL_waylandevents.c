@@ -419,7 +419,7 @@ pointer_handle_axis_source(void *data, struct wl_pointer *pointer,
         default: source = SDL_MOUSEWHEEL_SOURCE_UNDEFINED; break;
     }
 
-    SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 0, 0, source);
+    SDL_SendPanEvent(window->sdlwindow, 0, 0, false, false, source, SDL_PAN_AXIS_NONE);
 }
 
 static void
@@ -429,7 +429,14 @@ pointer_handle_axis_stop(void *data, struct wl_pointer *pointer,
     struct SDL_WaylandInput *input = data;
     SDL_WindowData *window = input->pointer_focus;
 
-    SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 1, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
+    uint32_t mapped_axis;
+    switch(axis) {
+        case 0: mapped_axis = SDL_PAN_AXIS_VERTICAL;
+        case 1: mapped_axis = SDL_PAN_AXIS_HORIZONTAL;
+    }
+
+    // emits event with SDL_PAN_AXIS_NONE as this event 
+    SDL_SendPanEvent(window->sdlwindow, 0, 0, true, false, SDL_MOUSEWHEEL_SOURCE_LAST, SDL_PAN_AXIS_NONE);
 }
 
 static void
@@ -441,12 +448,13 @@ pointer_handle_axis_discrete(void *data, struct wl_pointer *pointer,
     Uint64 x = 0;
     Uint64 y = 0;
 
+    uint32_t mapped_axis;
     switch(axis) {
-        case 0: y = discrete;
-        case 1: x = discrete;
+        case 0: mapped_axis = SDL_PAN_AXIS_VERTICAL;
+        case 1: mapped_axis = SDL_PAN_AXIS_HORIZONTAL;
     }
 
-    SDL_SendPanEvent(window->sdlwindow, 0, x, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_WHEEL);
+    SDL_SendPanEvent(window->sdlwindow, 0, discrete, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_WHEEL);
 }
 
 static const struct wl_pointer_listener pointer_listener = {

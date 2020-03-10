@@ -320,19 +320,23 @@ typedef struct SDL_MouseWheelEvent
     Uint32 direction;   /**< Set to one of the SDL_MOUSEWHEEL_* defines. When FLIPPED the values in X and Y will be opposite. Multiply by -1 to change them back */
 } SDL_MouseWheelEvent;
 
+typedef struct SDL_Pan
+{
+    Uint32 axis; /**< One of SDL_PAN_AXIS_[...], the axis this event contains a delta for */
+
 typedef struct SDL_PanEvent
 {
     Uint32 type;          /**< ::SDL_PANEVENT */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Uint32 windowID;    /**< The window with mouse focus, if any */
-    Uint64 x;      /**< Precise scrolling amount on x axis. */
-    Uint64 y;      /**< Precise scrolling amount on y axis. */
+    //Uint64 delta;      /**< Precise scrolling amount on given axis. */
+    //Uint32 axis;       /**< One of SDL_PAN_AXIS_[...], the axis this event contains a delta for */
     Uint32 which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
-    Uint32 source_type; /**< One of SDL_MOUSEWHEEL_SOURCE_[...] */
-    Uint8  contains_x; /**< Indicates event contains a useful value in scalar_x and a pan should be calculated */
-    Uint8  contains_y; /**< Indicates event contains a useful value in scalar_y and a pan should be calculated */
-    Uint8  interrupt;  /**< If some fling event was dispatched, this is intended to terminate it */
-    Uint8  fling;      /**< Indicates the user has "flung" the wheel and kinetic scrolling (if enabled) should begin here */
+    SDL_PanType pantype;
+    SDL_PanType_Contents contents;
+    //Uint32 source_type; /**< One of SDL_MOUSEWHEEL_SOURCE_[...] */
+    //Uint8  interrupt;  /**< If some fling event was dispatched, this is intended to terminate it. Indicates delta should be ignored */
+    //Uint8  fling;      /**< Indicates the user has "flung" the wheel and kinetic scrolling (if enabled) should begin here. Ingicates delta should be ignored */
 } SDL_PanEvent;
 
 /**
