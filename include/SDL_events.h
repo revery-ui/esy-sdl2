@@ -320,10 +320,6 @@ typedef struct SDL_MouseWheelEvent
     Uint32 direction;   /**< Set to one of the SDL_MOUSEWHEEL_* defines. When FLIPPED the values in X and Y will be opposite. Multiply by -1 to change them back */
 } SDL_MouseWheelEvent;
 
-typedef struct SDL_Pan
-{
-    Uint32 axis; /**< One of SDL_PAN_AXIS_[...], the axis this event contains a delta for */
-
 typedef struct SDL_PanEvent
 {
     Uint32 type;          /**< ::SDL_PANEVENT */

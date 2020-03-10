@@ -662,13 +662,35 @@ SDL_SendMouseWheel(SDL_Window * window, SDL_MouseID mouseID, float x, float y, S
 }
 
 int
-SDL_SendPanEvent(
+SDL_SendPanSource(
+        SDL_Window * window,
+        SDL_MouseID mouseID,
+        SDL_MouseWheelSource source
+) {
+    SDL_Mouse *mouse = SDL_GetMouse();
+
+    if( SDL_GetEventState(SDL_PANEVENT) == SDL_ENABLE ) {
+        SDL_Event event;
+        event.type = SDL_PANEVENT;
+        event.pan.windowID = mouse->focus ? mouse->focus->id : 0;
+        event.pan.which = mouseID;
+        event.pan.pantype = SDL_PANTYPE_SOURCE;
+        
+        SDL_PanType_Source pan_source;
+        pan_source.source = source;
+
+        event.pan.contents.source = pan_source;
+        return SDL_PushEvent(&event) > 0;
+    } else {
+        return 0;
+    }
+}
+
+int
+SDL_SendPanDelta(
         SDL_Window * window,
         SDL_MouseID mouseID,
         Sint64 precise_delta,
-        Uint8 is_fling,
-        Uint8 is_interrupt,
-        SDL_MouseWheelSource source_type,
         SDL_PanAxis axis
 ) {
     SDL_Mouse *mouse = SDL_GetMouse();
