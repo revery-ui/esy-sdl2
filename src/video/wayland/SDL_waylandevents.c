@@ -393,7 +393,7 @@ pointer_handle_axis(void *data, struct wl_pointer *pointer,
         case 1: x = value; break;
     }
 
-    SDL_SendPanEvent(window->sdlwindow, 0, x, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
+    SDL_SendPanDelta(window->sdlwindow, 0, value, wl_fixed_to_double(value));
 }
 
 static void
@@ -409,7 +409,7 @@ pointer_handle_axis_source(void *data, struct wl_pointer *pointer,
     struct SDL_WaylandInput *input = data;
     SDL_WindowData *window = input->pointer_focus;
 
-    int source;
+    SDL_MouseWheelSource source;
 
     switch(axis_source) {
         case 0: source = SDL_MOUSEWHEEL_SOURCE_WHEEL; break;
@@ -419,7 +419,7 @@ pointer_handle_axis_source(void *data, struct wl_pointer *pointer,
         default: source = SDL_MOUSEWHEEL_SOURCE_UNDEFINED; break;
     }
 
-    SDL_SendPanEvent(window->sdlwindow, 0, 0, false, false, source, SDL_PAN_AXIS_NONE);
+    SDL_SendPanSource(window->sdlwindow, 0, source);
 }
 
 static void
@@ -435,8 +435,7 @@ pointer_handle_axis_stop(void *data, struct wl_pointer *pointer,
         case 1: mapped_axis = SDL_PAN_AXIS_HORIZONTAL;
     }
 
-    // emits event with SDL_PAN_AXIS_NONE as this event 
-    SDL_SendPanEvent(window->sdlwindow, 0, 0, true, false, SDL_MOUSEWHEEL_SOURCE_LAST, SDL_PAN_AXIS_NONE);
+    SDL_SendPanSource(window->sdlwindow, 0, mapped_axis);
 }
 
 static void
@@ -454,7 +453,11 @@ pointer_handle_axis_discrete(void *data, struct wl_pointer *pointer,
         case 1: mapped_axis = SDL_PAN_AXIS_HORIZONTAL;
     }
 
-    SDL_SendPanEvent(window->sdlwindow, 0, discrete, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_WHEEL);
+    // TODO: figure out semantics, may make sense to dispatch as SDL_MOUSEWHEEL_SOURCE_WHEEL every time
+    //SDL_SendPanEvent(window->sdlwindow, 0, discrete, y, axis, !axis, 0, 0, wl_latest_source);
+    //SDL_SendPanDelta(
+    // Is this actually something that should be picked up for mousewheels or do they already go through
+    // the normal axis pan event? TODO: figure this out
 }
 
 static const struct wl_pointer_listener pointer_listener = {

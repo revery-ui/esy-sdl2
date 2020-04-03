@@ -328,8 +328,11 @@ typedef struct SDL_PanEvent
     //Uint64 delta;      /**< Precise scrolling amount on given axis. */
     //Uint32 axis;       /**< One of SDL_PAN_AXIS_[...], the axis this event contains a delta for */
     Uint32 which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
+    SDL_PanAxis axis;
     SDL_PanType pantype;
-    SDL_PanType_Contents contents;
+    SDL_PanContents contents;
+
+    SDL_MouseWheelSource source;
     //Uint32 source_type; /**< One of SDL_MOUSEWHEEL_SOURCE_[...] */
     //Uint8  interrupt;  /**< If some fling event was dispatched, this is intended to terminate it. Indicates delta should be ignored */
     //Uint8  fling;      /**< Indicates the user has "flung" the wheel and kinetic scrolling (if enabled) should begin here. Ingicates delta should be ignored */
