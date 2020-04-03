@@ -431,8 +431,8 @@ pointer_handle_axis_stop(void *data, struct wl_pointer *pointer,
 
     uint32_t mapped_axis;
     switch(axis) {
-        case 0: mapped_axis = SDL_PAN_AXIS_VERTICAL;
-        case 1: mapped_axis = SDL_PAN_AXIS_HORIZONTAL;
+        case 0: mapped_axis = SDL_PAN_AXIS_VERTICAL; break;
+        case 1: mapped_axis = SDL_PAN_AXIS_HORIZONTAL; break;
     }
 
     SDL_SendPanSource(window->sdlwindow, 0, mapped_axis);
@@ -449,8 +449,8 @@ pointer_handle_axis_discrete(void *data, struct wl_pointer *pointer,
 
     uint32_t mapped_axis;
     switch(axis) {
-        case 0: mapped_axis = SDL_PAN_AXIS_VERTICAL;
-        case 1: mapped_axis = SDL_PAN_AXIS_HORIZONTAL;
+        case 0: mapped_axis = SDL_PAN_AXIS_VERTICAL; break;
+        case 1: mapped_axis = SDL_PAN_AXIS_HORIZONTAL; break;
     }
 
     // TODO: figure out semantics, may make sense to dispatch as SDL_MOUSEWHEEL_SOURCE_WHEEL every time
