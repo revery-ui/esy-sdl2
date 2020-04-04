@@ -690,6 +690,7 @@ SDL_SendPanDelta(
         event.pan.pantype = SDL_PANEVENTTYPE_PAN;
         event.pan.contents.pan.delta = delta;
         event.pan.source = SDL_GetPanLastSource();
+        event.pan.axis = axis;
         return SDL_PushEvent(&event) > 0;
     } else {
         return 0;
@@ -712,6 +713,7 @@ SDL_SendPanFling(
         event.pan.pantype = SDL_PANEVENTTYPE_FLING;
         // no union contents written for this event type
         event.pan.source = SDL_GetPanLastSource();
+        event.pan.axis = axis;
         return SDL_PushEvent(&event) > 0;
     } else {
         return 0;
@@ -734,6 +736,7 @@ SDL_SendPanInterrupt(
         event.pan.pantype = SDL_PANEVENTTYPE_INTERRUPT;
         // no union contents written for this event type
         event.pan.source = SDL_GetPanLastSource();
+        event.pan.axis = axis;
         return SDL_PushEvent(&event) > 0;
     } else {
         return 0;
