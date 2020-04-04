@@ -435,7 +435,7 @@ pointer_handle_axis_stop(void *data, struct wl_pointer *pointer,
         case 1: mapped_axis = SDL_PAN_AXIS_HORIZONTAL; break;
     }
 
-    SDL_SendPanSource(window->sdlwindow, 0, mapped_axis);
+    SDL_SendPanFling(window->sdlwindow, 0, mapped_axis);
 }
 
 static void
@@ -453,9 +453,6 @@ pointer_handle_axis_discrete(void *data, struct wl_pointer *pointer,
         case 1: mapped_axis = SDL_PAN_AXIS_HORIZONTAL; break;
     }
 
-    // TODO: figure out semantics, may make sense to dispatch as SDL_MOUSEWHEEL_SOURCE_WHEEL every time
-    //SDL_SendPanEvent(window->sdlwindow, 0, discrete, y, axis, !axis, 0, 0, wl_latest_source);
-    //SDL_SendPanDelta(
     // Is this actually something that should be picked up for mousewheels or do they already go through
     // the normal axis pan event? TODO: figure this out
 }
