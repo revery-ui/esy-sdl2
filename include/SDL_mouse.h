@@ -96,7 +96,6 @@ typedef enum
 {
     SDL_PAN_AXIS_VERTICAL,
     SDL_PAN_AXIS_HORIZONTAL,
-    SDL_PAN_AXIS_NONE, /**< Indicates this delta describes no axis. Any event marked with this should not rely on delta being sane or meaningful */
 } SDL_PanAxis;
 
 typedef enum

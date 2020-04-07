@@ -389,11 +389,11 @@ pointer_handle_axis(void *data, struct wl_pointer *pointer,
 
     // dispatch new pan event
     switch(axis) {
-        case 0: y = value; break;
-        case 1: x = value; break;
+        case 0: axis = SDL_PAN_AXIS_VERTICAL; break;
+        case 1: axis = SDL_PAN_AXIS_HORIZONTAL; break;
     }
 
-    SDL_SendPanDelta(window->sdlwindow, 0, value, wl_fixed_to_double(value));
+    SDL_SendPanDelta(window->sdlwindow, 0, wl_fixed_to_double(value), axis);
 }
 
 static void
