@@ -691,7 +691,7 @@ SDL_SendPanDelta(
         event.pan.contents.pan.delta = delta;
         event.pan.source = SDL_GetPanLastSource();
         event.pan.axis = axis;
-        return SDL_PushEvent(&event) > 0;
+        return SDL_PushEvent(&event);
     } else {
         return 0;
     }
