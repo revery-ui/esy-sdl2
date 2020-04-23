@@ -718,15 +718,19 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         returnCode = 0;
         break;
 
-#ifdef WM_INPUTLANGCHANGE
     case WM_INPUTLANGCHANGE:
         {
             WIN_UpdateKeymap();
+            
+            // ONIVIM 2: https://github.com/onivim/oni2/issues/1657
+            // Reset keyboard to prevent GUI / windows key
+            // from being 'stuck' after the keyboard selection UI changes
+            SDL_ResetKeyboard();
+            
             SDL_SendKeymapChangedEvent();
         }
         returnCode = 1;
         break;
-#endif /* WM_INPUTLANGCHANGE */
 
     case WM_NCLBUTTONDOWN:
         {
