@@ -34,6 +34,7 @@
 #include "../../events/SDL_mouse_c.h"
 #include "../../events/SDL_touch_c.h"
 #include "../../events/SDL_windowevents_c.h"
+#include "../../events/SDL_dragevents_c.h"
 #include "../../events/SDL_dropevents_c.h"
 #include "SDL_cocoavideo.h"
 #include "SDL_cocoashape.h"
@@ -137,6 +138,57 @@
     }
 
     return NSDragOperationNone; /* no idea what to do with this, reject it. */
+}
+
+- (NSDragOperation)draggingUpdated:(id<NSDraggingInfo>)sender
+{
+    NSPasteboard *pasteboard = [sender draggingPasteboard];
+    NSArray *types = [NSArray arrayWithObject:NSFilenamesPboardType];
+    NSString *desiredType = [pasteboard availableTypeFromArray:types];
+    SDL_Window *sdlwindow = [self findSDLWindow];
+    NSPoint point = [sender draggingLocation];
+
+    if (desiredType == nil) {
+        return NSDragOperationNone;
+    }
+
+    NSData *data = [pasteboard dataForType:desiredType];
+    if (data == nil) {
+        return NSDragOperationNone;
+    }
+
+    SDL_assert([desiredType isEqualToString:NSFilenamesPboardType]);
+    NSArray *array = [pasteboard propertyListForType:@"NSFilenamesPboardType"];
+
+    for (NSString *path in array) {
+        NSURL *fileURL = [NSURL fileURLWithPath:path];
+        NSNumber *isAlias = nil;
+
+        [fileURL getResourceValue:&isAlias forKey:NSURLIsAliasFileKey error:nil];
+
+        if ([isAlias boolValue]) {
+            NSURLBookmarkResolutionOptions opts = NSURLBookmarkResolutionWithoutMounting | NSURLBookmarkResolutionWithoutUI;
+            NSData *bookmark = [NSURL bookmarkDataWithContentsOfURL:fileURL error:nil];
+            if (bookmark != nil) {
+                NSURL *resolvedURL = [NSURL URLByResolvingBookmarkData:bookmark
+                                                               options:opts
+                                                         relativeToURL:nil
+                                                   bookmarkDataIsStale:nil
+                                                                 error:nil];
+
+                if (resolvedURL != nil) {
+                    fileURL = resolvedURL;
+                }
+            }
+        }
+
+        if (!SDL_SendDragFile(sdlwindow, [[fileURL path] UTF8String], point.x, point.y)) {
+            return NSDragOperationNone;
+        }
+    }
+
+    SDL_SendDragComplete(sdlwindow, point.x, point.y);
+    return NSDragOperationGeneric;
 }
 
 - (BOOL)performDragOperation:(id <NSDraggingInfo>)sender
@@ -711,7 +763,7 @@ SetWindowStyle(SDL_Window * window, NSUInteger style)
 
     isFullscreenSpace = NO;
     inFullscreenTransition = NO;
-    
+
     [self windowDidExitFullScreen:nil];
 }
 
@@ -727,7 +779,7 @@ SetWindowStyle(SDL_Window * window, NSUInteger style)
         pendingWindowOperation = PENDING_OPERATION_NONE;
         [self setFullscreenSpace:NO];
     } else {
-        /* Unset the resizable flag. 
+        /* Unset the resizable flag.
            This is a workaround for https://bugzilla.libsdl.org/show_bug.cgi?id=3697
          */
         SetWindowStyle(window, [nswindow styleMask] & (~NSWindowStyleMaskResizable));
@@ -763,16 +815,16 @@ SetWindowStyle(SDL_Window * window, NSUInteger style)
 - (void)windowDidFailToExitFullScreen:(NSNotification *)aNotification
 {
     SDL_Window *window = _data->window;
-    
+
     if (window->is_destroying) {
         return;
     }
 
     SetWindowStyle(window, (NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|NSWindowStyleMaskMiniaturizable|NSWindowStyleMaskResizable));
-    
+
     isFullscreenSpace = YES;
     inFullscreenTransition = NO;
-    
+
     [self windowDidEnterFullScreen:nil];
 }
 
@@ -1474,7 +1526,7 @@ Cocoa_CreateWindow(_THIS, SDL_Window * window)
     if (!(window->flags & SDL_WINDOW_OPENGL)) {
         return 0;
     }
-    
+
     /* The rest of this macro mess is for OpenGL or OpenGL ES windows */
 #if SDL_VIDEO_OPENGL_ES2
     if (_this->gl_config.profile_mask == SDL_GL_CONTEXT_PROFILE_ES) {
@@ -1894,7 +1946,7 @@ Cocoa_DestroyWindow(_THIS, SDL_Window * window)
 
         NSArray *contexts = [[data->nscontexts copy] autorelease];
         for (SDLOpenGLContext *context in contexts) {
-            /* Calling setWindow:NULL causes the context to remove itself from the context list. */            
+            /* Calling setWindow:NULL causes the context to remove itself from the context list. */
             [context setWindow:NULL];
         }
         [data->nscontexts release];

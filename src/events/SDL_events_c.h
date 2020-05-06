@@ -31,6 +31,7 @@
 
 #include "SDL_clipboardevents_c.h"
 #include "SDL_displayevents_c.h"
+#include "SDL_dragevents_c.h"
 #include "SDL_dropevents_c.h"
 #include "SDL_gesture_c.h"
 #include "SDL_keyboard_c.h"
