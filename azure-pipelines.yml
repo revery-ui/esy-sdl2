@@ -9,17 +9,17 @@ jobs:
   steps:
   - template: .ci/esy-build-steps.yml
 
-- job: MacOS13
-  displayName: "MacOS Mojave"
-  pool:
-    vmImage: 'macOS 10.13'
-  steps:
-  - template: .ci/esy-build-steps.yml
-
 - job: MacOS14
   displayName: "MacOS High Sierra"
   pool:
     vmImage: 'macOS 10.14'
+  steps:
+  - template: .ci/esy-build-steps.yml
+
+- job: MacOS15
+  displayName: "MacOS Catalina"
+  pool:
+    vmImage: 'macOS 10.15'
   steps:
   - template: .ci/esy-build-steps.yml
 
