@@ -1364,9 +1364,7 @@ X11_DispatchEvent(_THIS)
             if (target == data->xdnd_req) {
                 /* read data */
                 SDL_x11Prop p;
-                int mouseX = xevent.xmotion.x;
-                int mouseY = xevent.xmotion.y;
-
+                SDL_Mouse *mouse = SDL_GetMouse();
 
                 X11_ReadProperty(&p, display, data->xwindow, videodata->PRIMARY);
 
@@ -1383,7 +1381,7 @@ X11_DispatchEvent(_THIS)
                                 if (data->dropping) {
                                     SDL_SendDropFile(data->window, fn);
                                 } else if (data->dragging) {
-                                    SDL_SendDragFile(data->window, fn, mouseX, mouseY);
+                                    SDL_SendDragFile(data->window, fn, mouse->x, mouse->y);
                                 }
                             }
                         }
@@ -1392,7 +1390,7 @@ X11_DispatchEvent(_THIS)
                     if (data->dropping) {
                         SDL_SendDropComplete(data->window);
                     } else if (data->dragging) {
-                        SDL_SendDragComplete(data->window, mouseX, mouseY);
+                        SDL_SendDragComplete(data->window, mouse->x, mouse->y);
                     }
                 }
                 X11_XFree(p.data);
