@@ -29,7 +29,7 @@
 */
 #define PENDING_FOCUS_TIME   200
 
-#if SDL_VIDEO_OPENGL_EGL   
+#if SDL_VIDEO_OPENGL_EGL
 #include <EGL/egl.h>
 #endif
 
@@ -67,8 +67,10 @@ typedef struct
     struct SDL_VideoData *videodata;
     unsigned long user_time;
     Atom xdnd_req;
+    SDL_bool dragging;
+    SDL_bool dropping;
     Window xdnd_source;
-#if SDL_VIDEO_OPENGL_EGL  
+#if SDL_VIDEO_OPENGL_EGL
     EGLSurface egl_surface;
 #endif
 } SDL_WindowData;
