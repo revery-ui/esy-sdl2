@@ -30,6 +30,7 @@
 
 #include "SDL_x11video.h"
 #include "SDL_x11touch.h"
+#include "SDL_x11mouse.h"
 #include "SDL_x11xinput2.h"
 #include "../../core/unix/SDL_poll.h"
 #include "../../events/SDL_events_c.h"
@@ -43,7 +44,7 @@
 
 #include <stdio.h>
 
-#define DEBUG_XEVENTS
+/*#define DEBUG_XEVENTS*/
 
 #ifndef _NET_WM_MOVERESIZE_SIZE_TOPLEFT
 #define _NET_WM_MOVERESIZE_SIZE_TOPLEFT      0
@@ -1363,8 +1364,9 @@ X11_DispatchEvent(_THIS)
 #endif
             if (target == data->xdnd_req) {
                 /* read data */
-                SDL_x11Prop p;
                 SDL_Mouse *mouse = SDL_GetMouse();
+                SDL_x11Prop p;
+                int globalMouseX, globalMouseY, localMouseX, localMouseY;
 
                 X11_ReadProperty(&p, display, data->xwindow, videodata->PRIMARY);
 
@@ -1372,6 +1374,11 @@ X11_DispatchEvent(_THIS)
                     /* !!! FIXME: don't use strtok here. It's not reentrant and not in SDL_stdinc. */
                     char* name = X11_XGetAtomName(display, target);
                     char *token = strtok((char *) p.data, "\r\n");
+                    if (data->dragging) {
+                        mouse->GetGlobalMouseState(&globalMouseX, &globalMouseY);
+                        localMouseX = globalMouseX - data->window->x;
+                        localMouseY = globalMouseY - data->window->y;
+                    }
                     while (token != NULL) {
                         if (SDL_strcmp("text/plain", name)==0) {
                             SDL_SendDropText(data->window, token);
@@ -1381,7 +1388,7 @@ X11_DispatchEvent(_THIS)
                                 if (data->dropping) {
                                     SDL_SendDropFile(data->window, fn);
                                 } else if (data->dragging) {
-                                    SDL_SendDragFile(data->window, fn, mouse->x, mouse->y);
+                                    SDL_SendDragFile(data->window, fn, localMouseX, localMouseY);
                                 }
                             }
                         }
@@ -1390,7 +1397,7 @@ X11_DispatchEvent(_THIS)
                     if (data->dropping) {
                         SDL_SendDropComplete(data->window);
                     } else if (data->dragging) {
-                        SDL_SendDragComplete(data->window, mouse->x, mouse->y);
+                        SDL_SendDragComplete(data->window, localMouseX, localMouseY);
                     }
                 }
                 X11_XFree(p.data);
