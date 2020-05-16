@@ -157,7 +157,7 @@ typedef enum
                                          a result of an API call or through the
                                          system or user changing the window size. */
     SDL_WINDOWEVENT_MINIMIZED,      /**< Window has been minimized */
-    SDL_WINDOWEVENT_FULLSCREEN,     /**< Window has been made fullscreen */
+    SDL_WINDOWEVENT_MAXIMIZED,      /**< Window has been maximized */
     SDL_WINDOWEVENT_RESTORED,       /**< Window has been restored to normal size
                                          and position */
     SDL_WINDOWEVENT_ENTER,          /**< Window has gained mouse focus */
@@ -167,7 +167,7 @@ typedef enum
     SDL_WINDOWEVENT_CLOSE,          /**< The window manager requests that the window be closed */
     SDL_WINDOWEVENT_TAKE_FOCUS,     /**< Window is being offered a focus (should SetWindowInputFocus() on itself or a subwindow, or ignore) */
     SDL_WINDOWEVENT_HIT_TEST,        /**< Window had a hit test that wasn't SDL_HITTEST_NORMAL. */
-    SDL_WINDOWEVENT_MAXIMIZED,      /**< Window has been maximized */
+    SDL_WINDOWEVENT_FULLSCREEN,     /**< Window has been made fullscreen */
 } SDL_WindowEventID;
 
 /**
