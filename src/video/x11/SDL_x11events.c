@@ -30,6 +30,7 @@
 
 #include "SDL_x11video.h"
 #include "SDL_x11touch.h"
+#include "SDL_x11mouse.h"
 #include "SDL_x11xinput2.h"
 #include "../../core/unix/SDL_poll.h"
 #include "../../events/SDL_events_c.h"
@@ -982,7 +983,7 @@ X11_DispatchEvent(_THIS)
                                         &xevent.xconfigure.x, &xevent.xconfigure.y,
                                         &ChildReturn);
             }
-                
+
             if (xevent.xconfigure.x != data->last_xconfigure.x ||
                 xevent.xconfigure.y != data->last_xconfigure.y) {
                 SDL_SendWindowEvent(data->window, SDL_WINDOWEVENT_MOVED,
@@ -1057,6 +1058,26 @@ X11_DispatchEvent(_THIS)
                 m.data.l[4] = videodata->XdndActionCopy; /* we only accept copying anyway */
 
                 X11_XSendEvent(display, xevent.xclient.data.l[0], False, NoEventMask, (XEvent*)&m);
+
+                if (data->xdnd_req == None) {
+                    memset(&m, 0, sizeof(XClientMessageEvent));
+                    m.type = ClientMessage;
+                    m.display = xevent.xclient.display;
+                    m.window = xevent.xclient.data.l[0];
+                    m.message_type = videodata->XdndFinished;
+                    m.format=32;
+                    m.data.l[0] = data->xwindow;
+                    m.data.l[1] = 0;
+                    m.data.l[2] = None; /* fail! */
+                    X11_XSendEvent(display, xevent.xclient.data.l[0], False, NoEventMask, (XEvent*)&m);
+                } else {
+                    data->dragging = SDL_TRUE;
+                    if(xdnd_version >= 1) {
+                        X11_XConvertSelection(display, videodata->XdndSelection, data->xdnd_req, videodata->PRIMARY, data->xwindow, xevent.xclient.data.l[2]);
+                    } else {
+                        X11_XConvertSelection(display, videodata->XdndSelection, data->xdnd_req, videodata->PRIMARY, data->xwindow, CurrentTime);
+                    }
+                }
                 X11_XFlush(display);
             }
             else if(xevent.xclient.message_type == videodata->XdndDrop) {
@@ -1074,6 +1095,7 @@ X11_DispatchEvent(_THIS)
                     X11_XSendEvent(display, xevent.xclient.data.l[0], False, NoEventMask, (XEvent*)&m);
                 } else {
                     /* convert */
+                    data->dropping = SDL_TRUE;
                     if(xdnd_version >= 1) {
                         X11_XConvertSelection(display, videodata->XdndSelection, data->xdnd_req, videodata->PRIMARY, data->xwindow, xevent.xclient.data.l[2]);
                     } else {
@@ -1342,39 +1364,60 @@ X11_DispatchEvent(_THIS)
 #endif
             if (target == data->xdnd_req) {
                 /* read data */
+                SDL_Mouse *mouse = SDL_GetMouse();
                 SDL_x11Prop p;
+                int globalMouseX, globalMouseY, localMouseX, localMouseY;
+
                 X11_ReadProperty(&p, display, data->xwindow, videodata->PRIMARY);
 
                 if (p.format == 8) {
                     /* !!! FIXME: don't use strtok here. It's not reentrant and not in SDL_stdinc. */
                     char* name = X11_XGetAtomName(display, target);
                     char *token = strtok((char *) p.data, "\r\n");
+                    if (data->dragging) {
+                        mouse->GetGlobalMouseState(&globalMouseX, &globalMouseY);
+                        localMouseX = globalMouseX - data->window->x;
+                        localMouseY = globalMouseY - data->window->y;
+                    }
                     while (token != NULL) {
                         if (SDL_strcmp("text/plain", name)==0) {
                             SDL_SendDropText(data->window, token);
                         } else if (SDL_strcmp("text/uri-list", name)==0) {
                             char *fn = X11_URIToLocal(token);
                             if (fn) {
-                                SDL_SendDropFile(data->window, fn);
+                                if (data->dropping) {
+                                    SDL_SendDropFile(data->window, fn);
+                                } else if (data->dragging) {
+                                    SDL_SendDragFile(data->window, fn, localMouseX, localMouseY);
+                                }
                             }
                         }
                         token = strtok(NULL, "\r\n");
                     }
-                    SDL_SendDropComplete(data->window);
+                    if (data->dropping) {
+                        SDL_SendDropComplete(data->window);
+                    } else if (data->dragging) {
+                        SDL_SendDragComplete(data->window, localMouseX, localMouseY);
+                    }
                 }
                 X11_XFree(p.data);
 
-                /* send reply */
-                SDL_memset(&m, 0, sizeof(XClientMessageEvent));
-                m.type = ClientMessage;
-                m.display = display;
-                m.window = data->xdnd_source;
-                m.message_type = videodata->XdndFinished;
-                m.format = 32;
-                m.data.l[0] = data->xwindow;
-                m.data.l[1] = 1;
-                m.data.l[2] = videodata->XdndActionCopy;
-                X11_XSendEvent(display, data->xdnd_source, False, NoEventMask, (XEvent*)&m);
+                if (data->dropping) {
+                    /* send reply */
+                    SDL_memset(&m, 0, sizeof(XClientMessageEvent));
+                    m.type = ClientMessage;
+                    m.display = display;
+                    m.window = data->xdnd_source;
+                    m.message_type = videodata->XdndFinished;
+                    m.format = 32;
+                    m.data.l[0] = data->xwindow;
+                    m.data.l[1] = 1;
+                    m.data.l[2] = videodata->XdndActionCopy;
+                    X11_XSendEvent(display, data->xdnd_source, False, NoEventMask, (XEvent*)&m);
+                }
+
+                data->dragging = SDL_FALSE;
+                data->dropping = SDL_FALSE;
 
                 X11_XSync(display, False);
             }

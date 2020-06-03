@@ -3,11 +3,12 @@
 # esy-sdl2
 Esy-enabled build for [SDL2](https://www.libsdl.org/)
 
-# Modifications
+## Modifications
 
-A patch by xenotron007 was applied to enable Windows IME candidate list to be shown:
-https://bugzilla.libsdl.org/attachment.cgi?id=3604&action=diff
+- A patch by xenotron007 was applied to enable Windows IME candidate list to be shown: https://bugzilla.libsdl.org/attachment.cgi?id=3604&action=diff
+- A patch by [@zbaylin](https://github.com/zbaylin) was made to add drag events that closely mirror the built-in drop events
 
-# License
+
+## License
 
 [SDL License](./LICENSE)

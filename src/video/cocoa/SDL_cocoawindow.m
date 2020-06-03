@@ -34,6 +34,7 @@
 #include "../../events/SDL_mouse_c.h"
 #include "../../events/SDL_touch_c.h"
 #include "../../events/SDL_windowevents_c.h"
+#include "../../events/SDL_dragevents_c.h"
 #include "../../events/SDL_dropevents_c.h"
 #include "SDL_cocoavideo.h"
 #include "SDL_cocoashape.h"
@@ -137,6 +138,57 @@
     }
 
     return NSDragOperationNone; /* no idea what to do with this, reject it. */
+}
+
+- (NSDragOperation)draggingUpdated:(id<NSDraggingInfo>)sender
+{
+    NSPasteboard *pasteboard = [sender draggingPasteboard];
+    NSArray *types = [NSArray arrayWithObject:NSFilenamesPboardType];
+    NSString *desiredType = [pasteboard availableTypeFromArray:types];
+    SDL_Window *sdlwindow = [self findSDLWindow];
+    NSPoint point = [sender draggingLocation];
+
+    if (desiredType == nil) {
+        return NSDragOperationNone;
+    }
+
+    NSData *data = [pasteboard dataForType:desiredType];
+    if (data == nil) {
+        return NSDragOperationNone;
+    }
+
+    SDL_assert([desiredType isEqualToString:NSFilenamesPboardType]);
+    NSArray *array = [pasteboard propertyListForType:@"NSFilenamesPboardType"];
+
+    for (NSString *path in array) {
+        NSURL *fileURL = [NSURL fileURLWithPath:path];
+        NSNumber *isAlias = nil;
+
+        [fileURL getResourceValue:&isAlias forKey:NSURLIsAliasFileKey error:nil];
+
+        if ([isAlias boolValue]) {
+            NSURLBookmarkResolutionOptions opts = NSURLBookmarkResolutionWithoutMounting | NSURLBookmarkResolutionWithoutUI;
+            NSData *bookmark = [NSURL bookmarkDataWithContentsOfURL:fileURL error:nil];
+            if (bookmark != nil) {
+                NSURL *resolvedURL = [NSURL URLByResolvingBookmarkData:bookmark
+                                                               options:opts
+                                                         relativeToURL:nil
+                                                   bookmarkDataIsStale:nil
+                                                                 error:nil];
+
+                if (resolvedURL != nil) {
+                    fileURL = resolvedURL;
+                }
+            }
+        }
+
+        if (!SDL_SendDragFile(sdlwindow, [[fileURL path] UTF8String], point.x, point.y)) {
+            return NSDragOperationNone;
+        }
+    }
+
+    SDL_SendDragComplete(sdlwindow, point.x, point.y);
+    return NSDragOperationGeneric;
 }
 
 - (BOOL)performDragOperation:(id <NSDraggingInfo>)sender

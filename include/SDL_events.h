@@ -157,6 +157,12 @@ typedef enum
     /* Pan events */
     SDL_PANEVENT = 0x2100,
 
+    /* Drag events */
+    SDL_DRAGFILE = 0x2200,
+    SDL_DRAGTEXT,
+    SDL_DRAGBEGIN,
+    SDL_DRAGCOMPLETE,
+
     /** Events ::SDL_USEREVENT through ::SDL_LASTEVENT are for your use,
      *  and should be allocated with SDL_RegisterEvents()
      */
@@ -533,6 +539,16 @@ typedef struct SDL_DropEvent
 } SDL_DropEvent;
 
 
+typedef struct SDL_DragEvent
+{
+    Uint32 type;
+    Uint32 timestamp;
+    char *file;
+    Uint32 windowID;
+    Sint32 x;
+    Sint32 y;
+} SDL_DragEvent;
+
 /**
  *  \brief Sensor event structure (event.sensor.*)
  */
@@ -624,7 +640,7 @@ typedef union SDL_Event
     SDL_MultiGestureEvent mgesture; /**< Gesture event data */
     SDL_DollarGestureEvent dgesture; /**< Gesture event data */
     SDL_DropEvent drop;             /**< Drag and drop event data */
-    
+    SDL_DragEvent drag;
     SDL_PanEvent pan; /**< Obsolesces mouse wheel events */
 
     /* This is necessary for ABI compatibility between Visual C++ and GCC

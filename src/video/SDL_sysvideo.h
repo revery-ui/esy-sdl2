@@ -100,6 +100,7 @@ struct SDL_Window
     SDL_bool is_hiding;
     SDL_bool is_destroying;
     SDL_bool is_dropping;       /* drag/drop in progress, expecting SDL_SendDropComplete(). */
+    SDL_bool is_dragging;
 
     SDL_WindowShaper *shaper;
 
