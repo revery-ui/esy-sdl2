@@ -92,6 +92,40 @@ typedef enum
     SDL_MOUSEWHEEL_SOURCE_OTHER_KINETIC,
 } SDL_MouseWheelSource;
 
+typedef enum
+{
+    SDL_PAN_AXIS_VERTICAL,
+    SDL_PAN_AXIS_HORIZONTAL,
+} SDL_PanAxis;
+
+typedef enum
+{
+    SDL_PANEVENTTYPE_PAN,
+    SDL_PANEVENTTYPE_FLING,
+    SDL_PANEVENTTYPE_INTERRUPT,
+    SDL_PANEVENTTYPE_SOURCE,
+} SDL_PanType;
+
+typedef struct SDL_PanType_Pan 
+{
+    double delta;
+} SDL_PanType_Pan;
+
+typedef struct SDL_PanType_Interrupt 
+{
+} SDL_PanType_Interrupt;
+
+typedef struct SDL_PanType_Fling 
+{
+} SDL_PanType_Fling;
+
+typedef union SDL_PanContents
+{
+    SDL_PanType_Pan pan;
+    SDL_PanType_Interrupt interrupt;
+    SDL_PanType_Fling fling;
+} SDL_PanContents;
+
 /* Function prototypes */
 
 /**

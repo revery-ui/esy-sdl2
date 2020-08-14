@@ -10,7 +10,7 @@ jobs:
   - template: .ci/esy-build-steps.yml
 
 - job: MacOS14
-  displayName: "MacOS High Sierra"
+  displayName: "MacOS Mojave"
   pool:
     vmImage: 'macOS-10.14'
   steps:

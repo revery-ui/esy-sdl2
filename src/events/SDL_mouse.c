@@ -661,17 +661,24 @@ SDL_SendMouseWheel(SDL_Window * window, SDL_MouseID mouseID, float x, float y, S
     return posted;
 }
 
+static SDL_MouseWheelSource latest_source = SDL_MOUSEWHEEL_SOURCE_LAST;
+
+static void
+SDL_SetPanSource(SDL_MouseWheelSource source) {
+    latest_source = source;
+}
+
+static SDL_MouseWheelSource
+SDL_GetPanLastSource() {
+    return latest_source;
+}
+
 int
-SDL_SendPanEvent(
+SDL_SendPanDelta(
         SDL_Window * window,
         SDL_MouseID mouseID,
-        Sint64 precise_x,
-        Sint64 precise_y,
-        Uint8 contains_x,
-        Uint8 contains_y,
-        Uint8 is_fling,
-        Uint8 is_interrupt,
-        SDL_MouseWheelSource source_type
+        double delta,
+        SDL_PanAxis axis
 ) {
     SDL_Mouse *mouse = SDL_GetMouse();
 
@@ -680,17 +687,73 @@ SDL_SendPanEvent(
         event.type = SDL_PANEVENT;
         event.pan.windowID = mouse->focus ? mouse->focus->id : 0;
         event.pan.which = mouseID;
-        event.pan.contains_x = contains_x;
-        event.pan.contains_y = contains_y;
-        event.pan.x = precise_x;
-        event.pan.y = precise_y;
-        event.pan.fling = is_fling;
-        event.pan.interrupt = is_interrupt;
-        event.pan.source_type = source_type;
-        return SDL_PushEvent(&event) > 0;
+        event.pan.pantype = SDL_PANEVENTTYPE_PAN;
+        event.pan.contents.pan.delta = delta;
+        event.pan.source = SDL_GetPanLastSource();
+        event.pan.axis = axis;
+        return SDL_PushEvent(&event);
     } else {
         return 0;
     }
+}
+
+int
+SDL_SendPanFling(
+        SDL_Window * window,
+        SDL_MouseID mouseID,
+        SDL_PanAxis axis
+) {
+    SDL_Mouse *mouse = SDL_GetMouse();
+
+    if( SDL_GetEventState(SDL_PANEVENT) == SDL_ENABLE ) {
+        SDL_Event event;
+        event.type = SDL_PANEVENT;
+        event.pan.windowID = mouse->focus ? mouse->focus->id : 0;
+        event.pan.which = mouseID;
+        event.pan.pantype = SDL_PANEVENTTYPE_FLING;
+        // no union contents written for this event type
+        event.pan.source = SDL_GetPanLastSource();
+        event.pan.axis = axis;
+        return SDL_PushEvent(&event);
+    } else {
+        return 0;
+    }
+}
+
+int
+SDL_SendPanInterrupt(
+        SDL_Window * window,
+        SDL_MouseID mouseID,
+        SDL_PanAxis axis
+) {
+    SDL_Mouse *mouse = SDL_GetMouse();
+
+    if( SDL_GetEventState(SDL_PANEVENT) == SDL_ENABLE ) {
+        SDL_Event event;
+        event.type = SDL_PANEVENT;
+        event.pan.windowID = mouse->focus ? mouse->focus->id : 0;
+        event.pan.which = mouseID;
+        event.pan.pantype = SDL_PANEVENTTYPE_INTERRUPT;
+        // no union contents written for this event type
+        event.pan.source = SDL_GetPanLastSource();
+        event.pan.axis = axis;
+        return SDL_PushEvent(&event);
+    } else {
+        return 0;
+    }
+}
+
+int
+SDL_SendPanSource(
+    SDL_Window * window,
+    SDL_MouseID mouseID,
+    SDL_MouseWheelSource source
+) {
+    // may become a full event at some point,
+    // implemented very basically here. Expect semantics
+    // to be the same as other event dispatch functions
+    SDL_SetPanSource(source);
+    return 1;
 }
 
 void

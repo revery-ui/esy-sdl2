@@ -389,11 +389,11 @@ pointer_handle_axis(void *data, struct wl_pointer *pointer,
 
     // dispatch new pan event
     switch(axis) {
-        case 0: y = value; break;
-        case 1: x = value; break;
+        case 0: axis = SDL_PAN_AXIS_VERTICAL; break;
+        case 1: axis = SDL_PAN_AXIS_HORIZONTAL; break;
     }
 
-    SDL_SendPanEvent(window->sdlwindow, 0, x, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
+    SDL_SendPanDelta(window->sdlwindow, 0, wl_fixed_to_double(value), axis);
 }
 
 static void
@@ -409,7 +409,7 @@ pointer_handle_axis_source(void *data, struct wl_pointer *pointer,
     struct SDL_WaylandInput *input = data;
     SDL_WindowData *window = input->pointer_focus;
 
-    int source;
+    SDL_MouseWheelSource source;
 
     switch(axis_source) {
         case 0: source = SDL_MOUSEWHEEL_SOURCE_WHEEL; break;
@@ -419,7 +419,7 @@ pointer_handle_axis_source(void *data, struct wl_pointer *pointer,
         default: source = SDL_MOUSEWHEEL_SOURCE_UNDEFINED; break;
     }
 
-    SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 0, 0, source);
+    SDL_SendPanSource(window->sdlwindow, 0, source);
 }
 
 static void
@@ -429,7 +429,13 @@ pointer_handle_axis_stop(void *data, struct wl_pointer *pointer,
     struct SDL_WaylandInput *input = data;
     SDL_WindowData *window = input->pointer_focus;
 
-    SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 1, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
+    uint32_t mapped_axis;
+    switch(axis) {
+        case 0: mapped_axis = SDL_PAN_AXIS_VERTICAL; break;
+        case 1: mapped_axis = SDL_PAN_AXIS_HORIZONTAL; break;
+    }
+
+    SDL_SendPanFling(window->sdlwindow, 0, mapped_axis);
 }
 
 static void
@@ -441,12 +447,14 @@ pointer_handle_axis_discrete(void *data, struct wl_pointer *pointer,
     Uint64 x = 0;
     Uint64 y = 0;
 
+    uint32_t mapped_axis;
     switch(axis) {
-        case 0: y = discrete;
-        case 1: x = discrete;
+        case 0: mapped_axis = SDL_PAN_AXIS_VERTICAL; break;
+        case 1: mapped_axis = SDL_PAN_AXIS_HORIZONTAL; break;
     }
 
-    SDL_SendPanEvent(window->sdlwindow, 0, x, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_WHEEL);
+    // Is this actually something that should be picked up for mousewheels or do they already go through
+    // the normal axis pan event? TODO: figure this out
 }
 
 static const struct wl_pointer_listener pointer_listener = {

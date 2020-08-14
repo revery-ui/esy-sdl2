@@ -325,14 +325,12 @@ typedef struct SDL_PanEvent
     Uint32 type;          /**< ::SDL_PANEVENT */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Uint32 windowID;    /**< The window with mouse focus, if any */
-    Uint64 x;      /**< Precise scrolling amount on x axis. */
-    Uint64 y;      /**< Precise scrolling amount on y axis. */
     Uint32 which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
-    Uint32 source_type; /**< One of SDL_MOUSEWHEEL_SOURCE_[...] */
-    Uint8  contains_x; /**< Indicates event contains a useful value in scalar_x and a pan should be calculated */
-    Uint8  contains_y; /**< Indicates event contains a useful value in scalar_y and a pan should be calculated */
-    Uint8  interrupt;  /**< If some fling event was dispatched, this is intended to terminate it */
-    Uint8  fling;      /**< Indicates the user has "flung" the wheel and kinetic scrolling (if enabled) should begin here */
+    SDL_PanAxis axis;
+    SDL_PanType pantype;
+    SDL_PanContents contents;
+
+    SDL_MouseWheelSource source;
 } SDL_PanEvent;
 
 /**
