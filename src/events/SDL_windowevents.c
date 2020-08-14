@@ -131,6 +131,7 @@ SDL_SendWindowEvent(SDL_Window * window, Uint8 windowevent, int data1,
         window->flags |= SDL_WINDOW_MINIMIZED;
         SDL_OnWindowMinimized(window);
         break;
+    case SDL_WINDOWEVENT_FULLSCREEN:
     case SDL_WINDOWEVENT_MAXIMIZED:
         if (window->flags & SDL_WINDOW_MAXIMIZED) {
             return 0;

@@ -1,31 +1,31 @@
 {
   "name": "esy-sdl2",
-  "version": "2.0.10006",
+  "version": "2.0.10008",
   "description": "Esy-enabled SDL 2 build",
   "license": "MIT",
   "esy": {
     "build": [
-        ["bash", "-c", "#{os == 'windows' ? 'SHELL=bash CC=x86_64-w64-mingw32-gcc WINDRES=x86_64-w64-mingw32-windres SDL_THREAD_PTHREAD=1 ./configure --prefix=$cur__install --enable-pthreads' : 'echo'}"],
-        ["bash", "-c", "#{os == 'darwin' ? './configure --enable-shared=no --enable-static=yes --disable-video-x11 --prefix=$cur__install' : 'echo'}"],
-        ["bash", "-c", "#{os == 'linux' ? './configure --prefix=$cur__install' : 'echo'}"],
-        ["make"],
-        ["make", "install"]
+      [
+        "bash",
+        "-c",
+        "./build-scripts/esybuild.sh --os=#{os}"
+      ]
     ],
-    "buildsInSource":true,
+    "buildsInSource": true,
     "exportedEnv": {
-        "SDL2_INCLUDE_PATH": {
-            "val": "#{self.install / 'include'}",
-            "scope": "global"
-        },
-        "SDL2_LIB_PATH": {
-            "val": "#{self.lib}",
-            "scope": "global"
-        },
-        "LD_LIBRARY_PATH": {
-            "val": "#{self.lib : $LD_LIBRARY_PATH}",
-            "scope": "global"
-        }
+      "SDL2_INCLUDE_PATH": {
+        "val": "#{self.install / 'include'}",
+        "scope": "global"
+      },
+      "SDL2_LIB_PATH": {
+        "val": "#{self.lib}",
+        "scope": "global"
+      },
+      "LD_LIBRARY_PATH": {
+        "val": "#{self.lib : $LD_LIBRARY_PATH}",
+        "scope": "global"
+      }
     }
   },
-  "dependencies": { }
+  "dependencies": {}
 }
