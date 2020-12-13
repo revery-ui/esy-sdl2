@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2019 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2020 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,6 +27,7 @@
  */
 #include "SDL_DirectFB_modes.h"
 #include "SDL_DirectFB_opengl.h"
+#include "SDL_DirectFB_vulkan.h"
 #include "SDL_DirectFB_window.h"
 #include "SDL_DirectFB_WM.h"
 
@@ -60,12 +61,11 @@
 static int DirectFB_VideoInit(_THIS);
 static void DirectFB_VideoQuit(_THIS);
 
-static int DirectFB_Available(void);
 static SDL_VideoDevice *DirectFB_CreateDevice(int devindex);
 
 VideoBootStrap DirectFB_bootstrap = {
     "directfb", "DirectFB",
-    DirectFB_Available, DirectFB_CreateDevice
+    DirectFB_CreateDevice
 };
 
 static const DirectFBSurfaceDrawingFlagsNames(drawing_flags);
@@ -73,15 +73,6 @@ static const DirectFBSurfaceBlittingFlagsNames(blitting_flags);
 static const DirectFBAccelerationMaskNames(acceleration_mask);
 
 /* DirectFB driver bootstrap functions */
-
-static int
-DirectFB_Available(void)
-{
-    if (!SDL_DirectFB_LoadLibrary())
-        return 0;
-    SDL_DirectFB_UnLoadLibrary();
-    return 1;
-}
 
 static void
 DirectFB_DeleteDevice(SDL_VideoDevice * device)
@@ -145,6 +136,13 @@ DirectFB_CreateDevice(int devindex)
     device->shape_driver.CreateShaper = DirectFB_CreateShaper;
     device->shape_driver.SetWindowShape = DirectFB_SetWindowShape;
     device->shape_driver.ResizeWindowShape = DirectFB_ResizeWindowShape;
+
+#if SDL_VIDEO_VULKAN
+    device->Vulkan_LoadLibrary = DirectFB_Vulkan_LoadLibrary;
+    device->Vulkan_UnloadLibrary = DirectFB_Vulkan_UnloadLibrary;
+    device->Vulkan_GetInstanceExtensions = DirectFB_Vulkan_GetInstanceExtensions;
+    device->Vulkan_CreateSurface = DirectFB_Vulkan_CreateSurface;
+#endif
 
     device->free = DirectFB_DeleteDevice;
 
