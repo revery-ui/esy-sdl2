@@ -11,4 +11,13 @@ steps:
   - script: esy install
     displayName: 'esy install'
   - script: esy build
-    displayName: 'esy build'
+    displayName: 'esy build --verbosity=debug'
+    env:
+      ESY__LOG: 'debug'
+  - task: PublishBuildArtifacts@1
+    displayName: Publish log
+    condition: and(failed(), eq(variables['Agent.OS'], 'Windows_NT'))
+    inputs:
+      pathToPublish: "C:\\npm\\cache\\_logs"
+      artifactName: log
+      artifactType: container

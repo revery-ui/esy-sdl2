@@ -1277,6 +1277,9 @@ SDLTest_PrintEvent(SDL_Event * event)
         case SDL_WINDOWEVENT_MAXIMIZED:
             SDL_Log("SDL EVENT: Window %d maximized", event->window.windowID);
             break;
+        case SDL_WINDOWEVENT_FULLSCREEN:
+            SDL_Log("SDL EVENT: Window %d entered fullscreen", event->window.windowID);
+            break;
         case SDL_WINDOWEVENT_RESTORED:
             SDL_Log("SDL EVENT: Window %d restored", event->window.windowID);
             break;

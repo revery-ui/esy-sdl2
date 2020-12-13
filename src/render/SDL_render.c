@@ -642,7 +642,8 @@ SDL_RendererEventWatch(void *userdata, SDL_Event *event)
             } else if (event->window.event == SDL_WINDOWEVENT_MINIMIZED) {
                 renderer->hidden = SDL_TRUE;
             } else if (event->window.event == SDL_WINDOWEVENT_RESTORED || 
-                       event->window.event == SDL_WINDOWEVENT_MAXIMIZED) {
+                       event->window.event == SDL_WINDOWEVENT_MAXIMIZED ||
+                       event->window.event == SDL_WINDOWEVENT_FULLSCREEN) {
                 if (!(SDL_GetWindowFlags(window) & SDL_WINDOW_HIDDEN)) {
                     renderer->hidden = SDL_FALSE;
                 }
