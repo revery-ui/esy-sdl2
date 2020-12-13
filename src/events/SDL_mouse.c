@@ -185,7 +185,7 @@ SDL_GetMouseFocus(void)
     return mouse->focus;
 }
 
-#if 0
+#if 0 // TODO: document what this does
 void
 SDL_ResetMouse(void)
 {
@@ -653,6 +653,38 @@ SDL_SendMouseWheel(SDL_Window * window, SDL_MouseID mouseID, float x, float y, S
         posted = (SDL_PushEvent(&event) > 0);
     }
     return posted;
+}
+
+int
+SDL_SendPanEvent(
+        SDL_Window * window,
+        SDL_MouseID mouseID,
+        Sint64 precise_x,
+        Sint64 precise_y,
+        Uint8 contains_x,
+        Uint8 contains_y,
+        Uint8 is_fling,
+        Uint8 is_interrupt,
+        SDL_MouseWheelSource source_type
+) {
+    SDL_Mouse *mouse = SDL_GetMouse();
+
+    if( SDL_GetEventState(SDL_PANEVENT) == SDL_ENABLE ) {
+        SDL_Event event;
+        event.type = SDL_PANEVENT;
+        event.pan.windowID = mouse->focus ? mouse->focus->id : 0;
+        event.pan.which = mouseID;
+        event.pan.contains_x = contains_x;
+        event.pan.contains_y = contains_y;
+        event.pan.x = precise_x;
+        event.pan.y = precise_y;
+        event.pan.fling = is_fling;
+        event.pan.interrupt = is_interrupt;
+        event.pan.source_type = source_type;
+        return SDL_PushEvent(&event) > 0;
+    } else {
+        return 0;
+    }
 }
 
 void

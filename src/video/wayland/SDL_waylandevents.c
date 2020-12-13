@@ -511,11 +511,75 @@ pointer_handle_axis(void *data, struct wl_pointer *pointer,
                     uint32_t time, uint32_t axis, wl_fixed_t value)
 {
     struct SDL_WaylandInput *input = data;
+    SDL_WindowData *window = input->pointer_focus;
 
-    if(wl_seat_get_version(input->seat) >= 5)
-        pointer_handle_axis_common(input, SDL_FALSE, axis, value);
-    else
-        pointer_handle_axis_common_v1(input, time, axis, value);
+    Uint64 x = 0;
+    Uint64 y = 0;
+
+    // dispatch legacy scroll event
+    // disabled temporarily while Revery stabilizes on support
+    // pointer_handle_axis_common(input, time, axis, value);
+
+    // dispatch new pan event
+    switch(axis) {
+        case 0: y = value; break;
+        case 1: x = value; break;
+    }
+
+    SDL_SendPanEvent(window->sdlwindow, 0, x, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
+}
+
+static void
+pointer_handle_frame(void *data, struct wl_pointer *pointer)
+{
+    //Event may be extraneous, TODO: wait for documentation of event to improve, revisit after
+}
+
+static void
+pointer_handle_axis_source(void *data, struct wl_pointer *pointer,
+                           uint32_t axis_source)
+{
+    struct SDL_WaylandInput *input = data;
+    SDL_WindowData *window = input->pointer_focus;
+
+    int source;
+
+    switch(axis_source) {
+        case 0: source = SDL_MOUSEWHEEL_SOURCE_WHEEL; break;
+        case 1: source = SDL_MOUSEWHEEL_SOURCE_TOUCHPAD; break;
+        case 2: source = SDL_MOUSEWHEEL_SOURCE_OTHER_NONKINETIC; break;
+        case 3: source = SDL_MOUSEWHEEL_SOURCE_OTHER_NONKINETIC; break;
+        default: source = SDL_MOUSEWHEEL_SOURCE_UNDEFINED; break;
+    }
+
+    SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 0, 0, source);
+}
+
+static void
+pointer_handle_axis_stop(void *data, struct wl_pointer *pointer,
+                         uint32_t time, uint32_t axis)
+{
+    struct SDL_WaylandInput *input = data;
+    SDL_WindowData *window = input->pointer_focus;
+
+    SDL_SendPanEvent(window->sdlwindow, 0, 0, 0, 0, 0, 1, 0, SDL_MOUSEWHEEL_SOURCE_LAST);
+}
+
+static void
+pointer_handle_axis_discrete(void *data, struct wl_pointer *pointer,
+                             uint32_t axis, uint32_t discrete)
+{
+    struct SDL_WaylandInput *input = data;
+    SDL_WindowData *window = input->pointer_focus;
+    Uint64 x = 0;
+    Uint64 y = 0;
+
+    switch(axis) {
+        case 0: y = discrete;
+        case 1: x = discrete;
+    }
+
+    SDL_SendPanEvent(window->sdlwindow, 0, x, y, axis, !axis, 0, 0, SDL_MOUSEWHEEL_SOURCE_WHEEL);
 }
 
 static void

@@ -734,6 +734,8 @@ SetWindowStyle(SDL_Window * window, NSUInteger style)
 
     inFullscreenTransition = NO;
 
+    SDL_SendWindowEvent(window, SDL_WINDOWEVENT_FULLSCREEN, 0, 0);
+
     if (pendingWindowOperation == PENDING_OPERATION_LEAVE_FULLSCREEN) {
         pendingWindowOperation = PENDING_OPERATION_NONE;
         [self setFullscreenSpace:NO];
