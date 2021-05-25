@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2019 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2020 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -33,7 +33,6 @@
  * let it return 0 events. */
 
 #include "SDL_error.h"
-#include "SDL_assert.h"
 #include "SDL_events.h"
 #include "SDL_timer.h"
 #include "SDL_mutex.h"
@@ -49,6 +48,7 @@
 #include "SDL_windowsjoystick_c.h"
 #include "SDL_dinputjoystick_c.h"
 #include "SDL_xinputjoystick_c.h"
+#include "SDL_rawinputjoystick_c.h"
 
 #include "../../haptic/windows/SDL_dinputhaptic_c.h"    /* For haptic hot plugging */
 #include "../../haptic/windows/SDL_xinputhaptic_c.h"    /* For haptic hot plugging */
@@ -109,9 +109,9 @@ typedef struct
 
 /* windowproc for our joystick detect thread message only window, to detect any USB device addition/removal */
 static LRESULT CALLBACK
-SDL_PrivateJoystickDetectProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+SDL_PrivateJoystickDetectProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    switch (message) {
+    switch (msg) {
     case WM_DEVICECHANGE:
         switch (wParam) {
         case DBT_DEVICEARRIVAL:
@@ -130,12 +130,20 @@ SDL_PrivateJoystickDetectProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
         return 0;
     }
 
-    return DefWindowProc (hwnd, message, wParam, lParam);
+#if SDL_JOYSTICK_RAWINPUT
+    return CallWindowProc(RAWINPUT_WindowProc, hwnd, msg, wParam, lParam);
+#else
+    return CallWindowProc(DefWindowProc, hwnd, msg, wParam, lParam);
+#endif
 }
 
 static void
 SDL_CleanupDeviceNotification(SDL_DeviceNotificationData *data)
 {
+#if SDL_JOYSTICK_RAWINPUT
+    RAWINPUT_UnregisterNotifications();
+#endif
+
     if (data->hNotify)
         UnregisterDeviceNotification(data->hNotify);
 
@@ -188,6 +196,10 @@ SDL_CreateDeviceNotification(SDL_DeviceNotificationData *data)
         SDL_CleanupDeviceNotification(data);
         return -1;
     }
+
+#if SDL_JOYSTICK_RAWINPUT
+    RAWINPUT_RegisterNotifications(data->messageWindow);
+#endif
     return 0;
 }
 
@@ -223,7 +235,7 @@ SDL_JoystickThread(void *_data)
 
 #if SDL_JOYSTICK_XINPUT
     SDL_bool bOpenedXInputDevices[XUSER_MAX_COUNT];
-    SDL_zero(bOpenedXInputDevices);
+    SDL_zeroa(bOpenedXInputDevices);
 #endif
 
     if (SDL_CreateDeviceNotification(&notification_data) < 0) {
@@ -359,9 +371,13 @@ WINDOWS_JoystickDetect(void)
         JoyStick_DeviceData *pListNext = NULL;
 
         if (pCurList->bXInputDevice) {
+#if SDL_HAPTIC_XINPUT
             SDL_XINPUT_MaybeRemoveDevice(pCurList->XInputUserId);
+#endif
         } else {
+#if SDL_HAPTIC_DINPUT
             SDL_DINPUT_MaybeRemoveDevice(&pCurList->dxdevice);
+#endif
         }
 
         SDL_PrivateJoystickRemoved(pCurList->nInstanceID);
@@ -380,9 +396,13 @@ WINDOWS_JoystickDetect(void)
         while (pNewJoystick) {
             if (pNewJoystick->send_add_event) {
                 if (pNewJoystick->bXInputDevice) {
+#if SDL_HAPTIC_XINPUT
                     SDL_XINPUT_MaybeAddDevice(pNewJoystick->XInputUserId);
+#endif
                 } else {
+#if SDL_HAPTIC_DINPUT
                     SDL_DINPUT_MaybeAddDevice(&pNewJoystick->dxdevice);
+#endif
                 }
 
                 SDL_PrivateJoystickAdded(pNewJoystick->nInstanceID);
@@ -400,8 +420,9 @@ static const char *
 WINDOWS_JoystickGetDeviceName(int device_index)
 {
     JoyStick_DeviceData *device = SYS_Joystick;
+    int index;
 
-    for (; device_index > 0; device_index--)
+    for (index = device_index; index > 0; index--)
         device = device->pNext;
 
     return device->joystickname;
@@ -417,6 +438,11 @@ WINDOWS_JoystickGetDevicePlayerIndex(int device_index)
         device = device->pNext;
 
     return device->bXInputDevice ? (int)device->XInputUserId : -1;
+}
+
+static void
+WINDOWS_JoystickSetDevicePlayerIndex(int device_index, int player_index)
+{
 }
 
 /* return the stable device guid for this device index */
@@ -453,36 +479,61 @@ WINDOWS_JoystickGetDeviceInstanceID(int device_index)
 static int
 WINDOWS_JoystickOpen(SDL_Joystick * joystick, int device_index)
 {
-    JoyStick_DeviceData *joystickdevice = SYS_Joystick;
+    JoyStick_DeviceData *device = SYS_Joystick;
+    int index;
 
-    for (; device_index > 0; device_index--)
-        joystickdevice = joystickdevice->pNext;
+    for (index = device_index; index > 0; index--)
+        device = device->pNext;
 
     /* allocate memory for system specific hardware data */
-    joystick->instance_id = joystickdevice->nInstanceID;
+    joystick->instance_id = device->nInstanceID;
     joystick->hwdata =
         (struct joystick_hwdata *) SDL_malloc(sizeof(struct joystick_hwdata));
     if (joystick->hwdata == NULL) {
         return SDL_OutOfMemory();
     }
     SDL_zerop(joystick->hwdata);
-    joystick->hwdata->guid = joystickdevice->guid;
+    joystick->hwdata->guid = device->guid;
 
-    if (joystickdevice->bXInputDevice) {
-        return SDL_XINPUT_JoystickOpen(joystick, joystickdevice);
+    if (device->bXInputDevice) {
+        return SDL_XINPUT_JoystickOpen(joystick, device);
     } else {
-        return SDL_DINPUT_JoystickOpen(joystick, joystickdevice);
+        return SDL_DINPUT_JoystickOpen(joystick, device);
     }
 }
 
 static int
-WINDOWS_JoystickRumble(SDL_Joystick * joystick, Uint16 low_frequency_rumble, Uint16 high_frequency_rumble, Uint32 duration_ms)
+WINDOWS_JoystickRumble(SDL_Joystick * joystick, Uint16 low_frequency_rumble, Uint16 high_frequency_rumble)
 {
     if (joystick->hwdata->bXInputDevice) {
-        return SDL_XINPUT_JoystickRumble(joystick, low_frequency_rumble, high_frequency_rumble, duration_ms);
+        return SDL_XINPUT_JoystickRumble(joystick, low_frequency_rumble, high_frequency_rumble);
     } else {
-        return SDL_DINPUT_JoystickRumble(joystick, low_frequency_rumble, high_frequency_rumble, duration_ms);
+        return SDL_DINPUT_JoystickRumble(joystick, low_frequency_rumble, high_frequency_rumble);
     }
+}
+
+static int
+WINDOWS_JoystickRumbleTriggers(SDL_Joystick * joystick, Uint16 left_rumble, Uint16 right_rumble)
+{
+    return SDL_Unsupported();
+}
+
+static SDL_bool
+WINDOWS_JoystickHasLED(SDL_Joystick * joystick)
+{
+    return SDL_FALSE;
+}
+
+static int
+WINDOWS_JoystickSetLED(SDL_Joystick * joystick, Uint8 red, Uint8 green, Uint8 blue)
+{
+    return SDL_Unsupported();
+}
+
+static int
+WINDOWS_JoystickSetSensorsEnabled(SDL_Joystick *joystick, SDL_bool enabled)
+{
+    return SDL_Unsupported();
 }
 
 static void
@@ -550,6 +601,12 @@ WINDOWS_JoystickQuit(void)
     s_bDeviceRemoved = SDL_FALSE;
 }
 
+static SDL_bool
+WINDOWS_JoystickGetGamepadMapping(int device_index, SDL_GamepadMapping *out)
+{
+    return SDL_FALSE;
+}
+
 SDL_JoystickDriver SDL_WINDOWS_JoystickDriver =
 {
     WINDOWS_JoystickInit,
@@ -557,13 +614,19 @@ SDL_JoystickDriver SDL_WINDOWS_JoystickDriver =
     WINDOWS_JoystickDetect,
     WINDOWS_JoystickGetDeviceName,
     WINDOWS_JoystickGetDevicePlayerIndex,
+    WINDOWS_JoystickSetDevicePlayerIndex,
     WINDOWS_JoystickGetDeviceGUID,
     WINDOWS_JoystickGetDeviceInstanceID,
     WINDOWS_JoystickOpen,
     WINDOWS_JoystickRumble,
+    WINDOWS_JoystickRumbleTriggers,
+    WINDOWS_JoystickHasLED,
+    WINDOWS_JoystickSetLED,
+    WINDOWS_JoystickSetSensorsEnabled,
     WINDOWS_JoystickUpdate,
     WINDOWS_JoystickClose,
     WINDOWS_JoystickQuit,
+    WINDOWS_JoystickGetGamepadMapping
 };
 
 #endif /* SDL_JOYSTICK_DINPUT || SDL_JOYSTICK_XINPUT */

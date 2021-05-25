@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2019 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2020 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,7 +26,6 @@
 #include "SDL.h"
 #include "SDL_x11video.h"
 #include "SDL_x11dyn.h"
-#include "SDL_assert.h"
 #include "SDL_x11messagebox.h"
 
 #include <X11/keysym.h>
@@ -334,7 +333,11 @@ X11_MessageBoxInitPositions( SDL_MessageBoxDataX11 *data )
         data->dialog_height = IntMax( data->dialog_height, ybuttons + 2 * button_height );
 
         /* Location for first button. */
-        x = ( data->dialog_width - width_of_buttons ) / 2;
+        if ( messageboxdata->flags & SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT ) {
+			x = data->dialog_width - ( data->dialog_width - width_of_buttons ) / 2 - ( button_width + button_spacing );
+		} else {
+			x = ( data->dialog_width - width_of_buttons ) / 2;
+		}
         y = ybuttons + ( data->dialog_height - ybuttons - button_height ) / 2;
 
         for ( i = 0; i < data->numbuttons; i++ ) {
@@ -349,7 +352,11 @@ X11_MessageBoxInitPositions( SDL_MessageBoxDataX11 *data )
             data->buttonpos[ i ].y = y + ( button_height - button_text_height - 1 ) / 2 + button_text_height;
 
             /* Scoot over for next button. */
-            x += button_width + button_spacing;
+			if ( messageboxdata->flags & SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT ) {
+				x -= button_width + button_spacing;
+			} else {
+				x += button_width + button_spacing;
+			}
         }
     }
 
@@ -401,6 +408,7 @@ X11_MessageBoxCreateWindow( SDL_MessageBoxDataX11 *data )
     Display *display = data->display;
     SDL_WindowData *windowdata = NULL;
     const SDL_MessageBoxData *messageboxdata = data->messageboxdata;
+    const char *title = messageboxdata->title ? messageboxdata->title : "";
     char *title_locale = NULL;
 
     if ( messageboxdata->window ) {
@@ -445,10 +453,10 @@ X11_MessageBoxCreateWindow( SDL_MessageBoxDataX11 *data )
         X11_XSetTransientForHint( display, data->window, windowdata->xwindow );
     }
 
-    X11_XStoreName( display, data->window, messageboxdata->title );
+    X11_XStoreName( display, data->window, title);
     _NET_WM_NAME = X11_XInternAtom(display, "_NET_WM_NAME", False);
 
-    title_locale = SDL_iconv_utf8_locale(messageboxdata->title);
+    title_locale = SDL_iconv_utf8_locale(title);
     if (title_locale) {
         XTextProperty titleprop;
         Status status = X11_XStringListToTextProperty(&title_locale, 1, &titleprop);
@@ -462,7 +470,7 @@ X11_MessageBoxCreateWindow( SDL_MessageBoxDataX11 *data )
 #ifdef X_HAVE_UTF8_STRING
     if (SDL_X11_HAVE_UTF8) {
         XTextProperty titleprop;
-        Status status = X11_Xutf8TextListToTextProperty(display, (char **) &messageboxdata->title, 1,
+        Status status = X11_Xutf8TextListToTextProperty(display, (char **) &title, 1,
                                             XUTF8StringStyle, &titleprop);
         if (status == Success) {
             X11_XSetTextProperty(display, data->window, &titleprop,
