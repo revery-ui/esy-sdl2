@@ -41,7 +41,7 @@ setup_macos() {
 }
 
 setup_windows() {
-  SHELL=bash CC=x86_64-w64-mingw32-gcc WINDRES=x86_64-w64-mingw32-windres SDL_THREAD_PTHREAD=1 "${SOURCE_PATH}"/configure \
+  SHELL=bash CC=x86_64-w64-mingw32-gcc RC=x86_64-w64-mingw32-windres SDL_THREAD_PTHREAD=1 "${SOURCE_PATH}"/configure \
     --prefix="$INSTALL_PREFIX" \
     --enable-pthreads
 }
