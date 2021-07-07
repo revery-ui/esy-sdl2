@@ -24,7 +24,7 @@ execute_inside_build_dir() {
 }
 
 make_and_install() {
-  make && make install
+  make -j4 && make install
 }
 
 # =====================================
