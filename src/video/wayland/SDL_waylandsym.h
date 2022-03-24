@@ -72,8 +72,14 @@ SDL_WAYLAND_MODULE(WAYLAND_CLIENT_1_10)
 SDL_WAYLAND_SYM(struct wl_proxy *, wl_proxy_marshal_constructor_versioned, (struct wl_proxy *proxy, uint32_t opcode, const struct wl_interface *interface, uint32_t version, ...))
 
 SDL_WAYLAND_MODULE(WAYLAND_CLIENT_1_20)
+#if SDL_WAYLAND_CHECK_VERSION(1, 20, 0)
+/* wayland-scanner 1.20 generates code that will call these, so these are
+ * non-optional when we are compiling against Wayland 1.20. We don't
+ * explicitly call them ourselves, though, so if we are only compiling
+ * against Wayland 1.18, they're unnecessary. */
 SDL_WAYLAND_SYM(struct wl_proxy*, wl_proxy_marshal_flags, (struct wl_proxy *proxy, uint32_t opcode, const struct wl_interface *interfac, uint32_t version, uint32_t flags, ...))
 SDL_WAYLAND_SYM(struct wl_proxy*, wl_proxy_marshal_array_flags, (struct wl_proxy *proxy, uint32_t opcode, const struct wl_interface *interface, uint32_t version,  uint32_t flags, union wl_argument *args))
+#endif
 
 SDL_WAYLAND_INTERFACE(wl_seat_interface)
 SDL_WAYLAND_INTERFACE(wl_surface_interface)
